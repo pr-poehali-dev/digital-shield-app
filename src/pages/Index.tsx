@@ -30,10 +30,10 @@ const PLANS = [
 ];
 
 const CONTACTS = [
-  { icon: "Phone", label: "Горячая линия", value: "8-800-000-00-00", sub: "Бесплатно, 24/7" },
-  { icon: "Mail", label: "Почта", value: "help@kibershield.ru", sub: "Ответим за 2 часа" },
+  { icon: "Phone", label: "Горячая линия", value: "8 913 114 88 01", sub: "Бесплатно, 24/7" },
+  { icon: "Mail", label: "Почта", value: "tkachenko.dmitriy.06@bk.ru", sub: "Ответим за 2 часа" },
   { icon: "MessageSquare", label: "Онлайн-чат", value: "Написать сейчас", sub: "~5 минут ответ" },
-  { icon: "MapPin", label: "Офис", value: "Москва, Большая Академическая, 12", sub: "Пн–Пт 9:00–18:00" },
+  { icon: "MapPin", label: "Офис", value: "г. Томск, ул. Белинского 51", sub: "Пн–Пт 9:00–18:00" },
 ];
 
 const FAQ = [
@@ -1102,7 +1102,7 @@ function SupportTab() {
           </div>
           <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 16, fontWeight: 600, color: "#EEF2F8", textTransform: "uppercase", letterSpacing: "0.04em" }}>Горячая линия</span>
         </div>
-        <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 28, fontWeight: 700, color: "#2282F0", letterSpacing: "0.04em", marginBottom: 8 }}>8-800-000-00-00</div>
+        <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 28, fontWeight: 700, color: "#2282F0", letterSpacing: "0.04em", marginBottom: 8 }}>8 913 114 88 01</div>
         <p style={{ color: "#8BA3C0", fontSize: 13, margin: 0, lineHeight: 1.5 }}>Бесплатно по всей России · 24 часа, 7 дней</p>
         <button style={{ marginTop: 14, width: "100%", padding: "12px", borderRadius: 10, background: "#1A6ECC", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, fontSize: 14, border: "none", cursor: "pointer" }}>
           Позвонить сейчас
