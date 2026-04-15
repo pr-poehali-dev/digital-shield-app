@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Icon from "@/components/ui/icon";
 
-const HERO_IMAGE = "https://cdn.poehali.dev/projects/0f0e92f1-8c32-44b1-a5a4-d99f9d8f7d20/files/8094a8f4-8479-4f80-93e4-f89cd49525be.jpg";
+const HERO_IMAGE = "https://cdn.poehali.dev/projects/0f0e92f1-8c32-44b1-a5a4-d99f9d8f7d20/bucket/7ed6c6aa-7b0b-4026-8f79-90a0609b2f24.jpg";
 
 const STATS_DATA = [
   { value: "74%", label: "молодёжи сталкивались с мошенничеством", color: "#EF4444", icon: "AlertTriangle" },
