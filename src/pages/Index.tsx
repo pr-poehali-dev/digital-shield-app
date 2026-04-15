@@ -185,7 +185,7 @@ function StatsTab() {
   );
 }
 
-type ActiveGame = "hunters" | null;
+type ActiveGame = "hunters" | "hacknet" | "shadows" | "heist" | null;
 type GamePhase = "menu" | "playing" | "result";
 
 interface Scenario {
@@ -250,9 +250,9 @@ const SCENARIOS: Scenario[] = [
 
 const GAME_LIST = [
   { id: "hunters", title: "Охотники на мошенников", desc: "Распознай схему и выбери верное действие", icon: "Crosshair", color: "#A855F7", gradient: "rgba(168,85,247,0.18)", border: "rgba(168,85,247,0.35)", tag: "Квиз", rounds: "5 раундов" },
-  { id: "hacknet", title: "Hacknet", desc: "Взломай систему до того, как тебя отследят", icon: "Terminal", color: "#22D3EE", gradient: "rgba(34,211,238,0.12)", border: "rgba(34,211,238,0.3)", tag: "Скоро", rounds: "В разработке" },
-  { id: "shadows", title: "Тени обмана", desc: "Детективная история: найди мошенника среди NPC", icon: "Eye", color: "#F59E0B", gradient: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.3)", tag: "Скоро", rounds: "В разработке" },
-  { id: "heist", title: "Афера", desc: "Стань детективом и раскрой финансовую схему", icon: "Briefcase", color: "#EF4444", gradient: "rgba(239,68,68,0.12)", border: "rgba(239,68,68,0.3)", tag: "Скоро", rounds: "В разработке" },
+  { id: "hacknet", title: "Hacknet", desc: "Взломай систему до того, как тебя отследят", icon: "Terminal", color: "#22D3EE", gradient: "rgba(34,211,238,0.12)", border: "rgba(34,211,238,0.3)", tag: "Хакинг", rounds: "6 уровней" },
+  { id: "shadows", title: "Тени обмана", desc: "Детективная история: найди мошенника среди NPC", icon: "Eye", color: "#F59E0B", gradient: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.3)", tag: "Детектив", rounds: "5 подозреваемых" },
+  { id: "heist", title: "Афера", desc: "Стань детективом и раскрой финансовую схему", icon: "Briefcase", color: "#EF4444", gradient: "rgba(239,68,68,0.12)", border: "rgba(239,68,68,0.3)", tag: "Расследование", rounds: "4 дела" },
   { id: "codex", title: "Код мошенника", desc: "Расшифруй послания и обезвредь преступника", icon: "Code2", color: "#22C55E", gradient: "rgba(34,197,94,0.12)", border: "rgba(34,197,94,0.3)", tag: "Скоро", rounds: "В разработке" },
   { id: "price", title: "Цена обмана", desc: "Симулятор: защити бюджет от атак мошенников", icon: "CircleDollarSign", color: "#FB923C", gradient: "rgba(251,146,60,0.12)", border: "rgba(251,146,60,0.3)", tag: "Скоро", rounds: "В разработке" },
 ];
@@ -407,10 +407,454 @@ function HuntersGame({ onBack }: { onBack: () => void }) {
   );
 }
 
+const HACKNET_LEVELS = [
+  { id: 1, prompt: "Ты подключился к сети. Введи команду для сканирования портов:", hint: "scan", wrongHints: ["hack", "connect", "run"], success: "Порты найдены: 22, 80, 443. Уязвимость обнаружена на порту 22.", fail: "Неверная команда. Система зафиксировала попытку. +10% трекинга." },
+  { id: 2, prompt: "Порт 22 открыт. Введи команду для подключения:", hint: "ssh", wrongHints: ["ping", "wget", "curl"], success: "SSH-соединение установлено. Ты внутри!", fail: "Соединение отклонено. Система подняла тревогу. +15% трекинга." },
+  { id: 3, prompt: "Ты в системе. Найди файл с уликами командой:", hint: "ls", wrongHints: ["cd", "rm", "pwd"], success: "Найден файл: evidence.txt. Данные о мошеннике получены!", fail: "Файл не найден. Следы заметены. +10% трекинга." },
+  { id: 4, prompt: "Скачай улики на свой сервер командой:", hint: "download", wrongHints: ["copy", "move", "save"], success: "Файл скачан. Улики у тебя!", fail: "Ошибка передачи. Соединение нестабильно. +20% трекинга." },
+  { id: 5, prompt: "Удали следы своего присутствия:", hint: "clean", wrongHints: ["exit", "logout", "quit"], success: "Логи очищены. Ты невидим!", fail: "Следы остались. Они на твоём хвосте! +25% трекинга." },
+  { id: 6, prompt: "Покинь систему незамеченным:", hint: "disconnect", wrongHints: ["exit", "quit", "stop"], success: "Операция завершена успешно. Мошенник разоблачён!", fail: "Соединение обнаружено при выходе. +15% трекинга." },
+];
+
+function HacknetGame({ onBack }: { onBack: () => void }) {
+  const [levelIdx, setLevelIdx] = useState(0);
+  const [input, setInput] = useState("");
+  const [tracking, setTracking] = useState(0);
+  const [log, setLog] = useState<{ text: string; type: "system" | "success" | "error" | "info" }[]>([
+    { text: "> HACKNET v2.4 — Система безопасного взлома", type: "system" },
+    { text: "> Цель: разоблачить мошенника. Не дай себя отследить.", type: "info" },
+    { text: "─────────────────────────────────", type: "system" },
+  ]);
+  const [phase, setPhase] = useState<"playing" | "win" | "lose">("playing");
+  const [answered, setAnswered] = useState(false);
+
+  const level = HACKNET_LEVELS[levelIdx];
+
+  function handleSubmit() {
+    if (!input.trim() || answered) return;
+    const cmd = input.trim().toLowerCase();
+    setAnswered(true);
+    if (cmd === level.hint) {
+      const newLog = [...log, { text: `$ ${cmd}`, type: "info" as const }, { text: level.success, type: "success" as const }];
+      setLog(newLog);
+      if (levelIdx + 1 >= HACKNET_LEVELS.length) {
+        setTimeout(() => setPhase("win"), 600);
+      } else {
+        setTimeout(() => { setLevelIdx(i => i + 1); setInput(""); setAnswered(false); }, 1200);
+      }
+    } else {
+      const penalty = [10, 15, 20, 25][Math.floor(Math.random() * 4)];
+      const newTracking = Math.min(100, tracking + penalty);
+      setTracking(newTracking);
+      setLog([...log, { text: `$ ${cmd}`, type: "info" as const }, { text: level.fail, type: "error" as const }]);
+      if (newTracking >= 100) {
+        setTimeout(() => setPhase("lose"), 600);
+      } else {
+        setTimeout(() => { setInput(""); setAnswered(false); }, 1000);
+      }
+    }
+    setInput("");
+  }
+
+  function restart() { setLevelIdx(0); setInput(""); setTracking(0); setLog([{ text: "> HACKNET v2.4 — новая сессия", type: "system" }, { text: "─────────────────────────────────", type: "system" }]); setPhase("playing"); setAnswered(false); }
+
+  return (
+    <div style={{ paddingBottom: 90 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 16px 12px" }}>
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: "#5A7A9A", padding: 0 }}>
+          <Icon name="ChevronLeft" size={18} style={{ color: "#5A7A9A" }} />
+          <span style={{ fontSize: 13, fontFamily: "'IBM Plex Sans', sans-serif" }}>Все игры</span>
+        </button>
+        <span style={{ color: "#3A5A7A" }}>·</span>
+        <span style={{ color: "#22D3EE", fontSize: 13, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>Hacknet</span>
+      </div>
+
+      {phase !== "playing" ? (
+        <div style={{ padding: "0 16px" }}>
+          <div style={{ background: phase === "win" ? "rgba(34,197,94,0.07)" : "rgba(239,68,68,0.07)", border: `1px solid ${phase === "win" ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`, borderRadius: 18, padding: "24px 20px", textAlign: "center" }}>
+            <div style={{ fontSize: 48, marginBottom: 12 }}>{phase === "win" ? "🏆" : "💀"}</div>
+            <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 20, fontWeight: 700, color: phase === "win" ? "#22C55E" : "#EF4444", marginBottom: 8 }}>
+              {phase === "win" ? "ОПЕРАЦИЯ ЗАВЕРШЕНА!" : "ОТСЛЕЖЕН!"}
+            </div>
+            <p style={{ color: "#8BA3C0", fontSize: 13, lineHeight: 1.6, margin: "0 0 20px" }}>
+              {phase === "win" ? "Мошенник разоблачён. Ты настоящий хакер!" : `Уровень трекинга достиг ${tracking}%. Они тебя нашли.`}
+            </p>
+            <button onClick={restart} style={{ width: "100%", padding: "13px", borderRadius: 12, background: "linear-gradient(135deg, #0891B2, #22D3EE)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer" }}>
+              Новая сессия
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div style={{ padding: "0 16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+            <span style={{ color: "#5A7A9A", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace" }}>Уровень {levelIdx + 1}/{HACKNET_LEVELS.length}</span>
+            <span style={{ color: tracking > 60 ? "#EF4444" : tracking > 30 ? "#F59E0B" : "#22C55E", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>Трекинг: {tracking}%</span>
+          </div>
+          <div style={{ width: "100%", height: 3, background: "rgba(239,68,68,0.1)", borderRadius: 2, marginBottom: 12 }}>
+            <div style={{ width: `${tracking}%`, height: "100%", background: tracking > 60 ? "#EF4444" : tracking > 30 ? "#F59E0B" : "#22C55E", borderRadius: 2, transition: "width 0.5s ease" }} />
+          </div>
+
+          <div style={{ background: "#050E1C", border: "1px solid rgba(34,211,238,0.2)", borderRadius: 12, padding: "14px", marginBottom: 12, minHeight: 140, maxHeight: 200, overflowY: "auto", fontFamily: "'IBM Plex Mono', monospace", fontSize: 11 }}>
+            {log.map((l, i) => (
+              <div key={i} style={{ marginBottom: 4, color: l.type === "success" ? "#22C55E" : l.type === "error" ? "#EF4444" : l.type === "info" ? "#22D3EE" : "#3A5A7A" }}>{l.text}</div>
+            ))}
+          </div>
+
+          <div style={{ background: "rgba(11,22,41,0.9)", border: "1px solid rgba(34,211,238,0.2)", borderRadius: 12, padding: "14px", marginBottom: 10 }}>
+            <p style={{ color: "#B0C8E0", fontSize: 13, margin: "0 0 12px", lineHeight: 1.5 }}>{level.prompt}</p>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+              {[level.hint, ...level.wrongHints].sort(() => Math.random() - 0.5).map((cmd, i) => (
+                <button key={i} onClick={() => { if (!answered) { setInput(cmd); } }}
+                  style={{ padding: "6px 12px", borderRadius: 8, background: input === cmd ? "rgba(34,211,238,0.15)" : "rgba(34,211,238,0.05)", border: `1px solid ${input === cmd ? "rgba(34,211,238,0.4)" : "rgba(34,211,238,0.12)"}`, color: input === cmd ? "#22D3EE" : "#5A7A9A", fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, cursor: "pointer" }}>
+                  {cmd}
+                </button>
+              ))}
+            </div>
+            <button onClick={handleSubmit} disabled={!input || answered}
+              style={{ width: "100%", padding: "11px", borderRadius: 10, background: input && !answered ? "linear-gradient(135deg, #0891B2, #22D3EE)" : "rgba(34,211,238,0.08)", color: input && !answered ? "#fff" : "#3A5A7A", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, fontSize: 13, border: "none", cursor: input && !answered ? "pointer" : "default" }}>
+              Выполнить команду
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const SUSPECTS = [
+  { name: "Алексей Нечаев", role: "Менеджер банка", age: 34, clues: ["Звонил жертве 3 раза", "Знал номер карты заранее", "Телефон зарегистрирован на подставное лицо"], guilty: true, motive: "Продавал базы данных клиентов конкурентам" },
+  { name: "Марина Соколова", role: "Кассир магазина", age: 27, clues: ["Работала в смену в день кражи", "Не имеет доступа к банковским данным", "Алиби подтверждено камерами"], guilty: false, motive: null },
+  { name: "Дмитрий Волков", role: "IT-специалист", age: 41, clues: ["Имеет доступ к системе", "Отсутствовал в офисе в нужный день", "Недавно взял кредит на 500 000 руб."], guilty: false, motive: null },
+  { name: "Светлана Петрова", role: "Секретарь директора", age: 29, clues: ["Видела жертву в тот день", "Не имеет технических навыков", "Уволена 2 месяца назад"], guilty: false, motive: null },
+  { name: "Игорь Быков", role: "Охранник", age: 38, clues: ["Дежурил у входа", "Знаком с Алексеем лично", "Пропускал его без записи"], guilty: false, motive: null },
+];
+
+function ShadowsGame({ onBack }: { onBack: () => void }) {
+  const [phase, setPhase] = useState<"intro" | "investigation" | "accusation" | "result">("intro");
+  const [openSuspect, setOpenSuspect] = useState<number | null>(null);
+  const [studied, setStudied] = useState<Set<number>>(new Set());
+  const [accused, setAccused] = useState<number | null>(null);
+
+  function studySuspect(i: number) { setOpenSuspect(i); setStudied(s => new Set([...s, i])); }
+
+  function accuse(i: number) { setAccused(i); setPhase("result"); }
+
+  const correct = accused !== null && SUSPECTS[accused].guilty;
+
+  return (
+    <div style={{ paddingBottom: 90 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 16px 12px" }}>
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: "#5A7A9A", padding: 0 }}>
+          <Icon name="ChevronLeft" size={18} style={{ color: "#5A7A9A" }} />
+          <span style={{ fontSize: 13, fontFamily: "'IBM Plex Sans', sans-serif" }}>Все игры</span>
+        </button>
+        <span style={{ color: "#3A5A7A" }}>·</span>
+        <span style={{ color: "#F59E0B", fontSize: 13, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>Тени обмана</span>
+      </div>
+
+      {phase === "intro" && (
+        <div style={{ padding: "0 16px" }}>
+          <div style={{ background: "linear-gradient(160deg, rgba(245,158,11,0.12), rgba(11,22,41,0.95))", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 18, padding: "20px 18px" }}>
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+              <Icon name="Eye" fallback="Search" size={24} style={{ color: "#F59E0B" }} />
+            </div>
+            <h3 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 20, fontWeight: 700, color: "#EEF2F8", margin: "0 0 10px" }}>ДЕЛО №47: КРАЖА ДАННЫХ</h3>
+            <p style={{ color: "#8BA3C0", fontSize: 12, lineHeight: 1.65, margin: "0 0 16px" }}>
+              Клиент банка потерял 180 000 руб. Мошенник знал все данные карты и кодовое слово. Среди пяти сотрудников — один виновен. Изучи улики и найди его.
+            </p>
+            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+              {[["5", "подозреваемых"], ["🔍", "улики"], ["⚖️", "обвинение"]].map(([v, l], i) => (
+                <div key={i} style={{ flex: 1, background: "rgba(11,22,41,0.7)", border: "1px solid rgba(245,158,11,0.15)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
+                  <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 18, fontWeight: 700, color: "#F59E0B" }}>{v}</div>
+                  <div style={{ color: "#5A7A9A", fontSize: 10, marginTop: 2 }}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setPhase("investigation")} style={{ width: "100%", padding: "13px", borderRadius: 12, background: "linear-gradient(135deg, #B45309, #F59E0B)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer" }}>
+              Начать расследование
+            </button>
+          </div>
+        </div>
+      )}
+
+      {phase === "investigation" && (
+        <div style={{ padding: "0 16px" }}>
+          <div style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)", borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
+            <p style={{ color: "#F59E0B", fontSize: 12, margin: 0, fontFamily: "'IBM Plex Mono', monospace" }}>ИЗУЧИ ПОДОЗРЕВАЕМЫХ · ИЗУЧЕНО: {studied.size}/5</p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+            {SUSPECTS.map((s, i) => (
+              <div key={i}>
+                <button onClick={() => studySuspect(i)}
+                  style={{ width: "100%", background: openSuspect === i ? "rgba(245,158,11,0.1)" : "rgba(11,22,41,0.85)", border: `1px solid ${studied.has(i) ? "rgba(245,158,11,0.3)" : "rgba(34,130,240,0.12)"}`, borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: studied.has(i) ? "rgba(245,158,11,0.12)" : "rgba(34,130,240,0.08)", border: `1px solid ${studied.has(i) ? "rgba(245,158,11,0.3)" : "rgba(34,130,240,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Icon name="User" fallback="User" size={16} style={{ color: studied.has(i) ? "#F59E0B" : "#3A5A7A" }} />
+                    </div>
+                    <div>
+                      <div style={{ color: "#EEF2F8", fontSize: 13, fontWeight: 600, fontFamily: "'IBM Plex Sans', sans-serif" }}>{s.name}</div>
+                      <div style={{ color: "#5A7A9A", fontSize: 11 }}>{s.role} · {s.age} лет</div>
+                    </div>
+                  </div>
+                  <Icon name={openSuspect === i ? "ChevronUp" : "ChevronDown"} size={14} style={{ color: "#5A7A9A" }} />
+                </button>
+                {openSuspect === i && (
+                  <div style={{ background: "rgba(245,158,11,0.04)", border: "1px solid rgba(245,158,11,0.15)", borderRadius: "0 0 12px 12px", padding: "12px 14px", marginTop: -4 }}>
+                    <p style={{ color: "#F59E0B", fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", margin: "0 0 8px" }}>УЛИКИ:</p>
+                    {s.clues.map((c, j) => (
+                      <div key={j} style={{ display: "flex", alignItems: "flex-start", gap: 6, marginBottom: 5 }}>
+                        <Icon name="AlertCircle" fallback="Circle" size={12} style={{ color: "#F59E0B", marginTop: 1, flexShrink: 0 }} />
+                        <span style={{ color: "#8BA3C0", fontSize: 12, lineHeight: 1.5 }}>{c}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          {studied.size >= 3 && (
+            <button onClick={() => setPhase("accusation")} style={{ width: "100%", padding: "13px", borderRadius: 12, background: "linear-gradient(135deg, #B45309, #F59E0B)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer" }}>
+              Выдвинуть обвинение →
+            </button>
+          )}
+        </div>
+      )}
+
+      {phase === "accusation" && (
+        <div style={{ padding: "0 16px" }}>
+          <div style={{ background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
+            <p style={{ color: "#F59E0B", fontSize: 12, fontFamily: "'IBM Plex Mono', monospace", margin: 0 }}>КТО ВИНОВЕН? Выбери подозреваемого:</p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {SUSPECTS.map((s, i) => (
+              <button key={i} onClick={() => accuse(i)}
+                style={{ width: "100%", background: "rgba(11,22,41,0.85)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Icon name="User" fallback="User" size={16} style={{ color: "#EF4444" }} />
+                </div>
+                <div>
+                  <div style={{ color: "#EEF2F8", fontSize: 14, fontWeight: 600 }}>{s.name}</div>
+                  <div style={{ color: "#5A7A9A", fontSize: 11 }}>{s.role}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {phase === "result" && accused !== null && (
+        <div style={{ padding: "0 16px" }}>
+          <div style={{ background: correct ? "rgba(34,197,94,0.07)" : "rgba(239,68,68,0.07)", border: `1px solid ${correct ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`, borderRadius: 18, padding: "22px 18px", textAlign: "center" }}>
+            <div style={{ fontSize: 44, marginBottom: 12 }}>{correct ? "⚖️" : "❌"}</div>
+            <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 18, fontWeight: 700, color: correct ? "#22C55E" : "#EF4444", marginBottom: 8 }}>
+              {correct ? "ВИНОВНЫЙ НАЙДЕН!" : "НЕВЕРНОЕ ОБВИНЕНИЕ"}
+            </div>
+            <p style={{ color: "#8BA3C0", fontSize: 13, lineHeight: 1.6, margin: "0 0 8px" }}>
+              {correct ? `${SUSPECTS[accused].name} виновен. ${SUSPECTS[accused].motive}` : `${SUSPECTS[accused].name} невиновен. Виновный — Алексей Нечаев. ${SUSPECTS.find(s => s.guilty)?.motive}`}
+            </p>
+            <button onClick={() => { setPhase("intro"); setStudied(new Set()); setOpenSuspect(null); setAccused(null); }}
+              style={{ width: "100%", padding: "13px", borderRadius: 12, background: "linear-gradient(135deg, #B45309, #F59E0B)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", marginTop: 12 }}>
+              Новое дело
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const HEIST_CASES = [
+  {
+    title: "Дело о фиктивном ООО",
+    brief: "Компания продаёт несуществующие товары через интернет. Соберите доказательства мошенничества.",
+    evidence: [
+      { text: "Юридический адрес — заброшенный склад", isProof: true },
+      { text: "Сайт создан 2 недели назад", isProof: true },
+      { text: "Компания зарегистрирована в ФНС", isProof: false },
+      { text: "Отзывы покупателей только положительные и без деталей", isProof: true },
+      { text: "Директор компании имеет LinkedIn-профиль", isProof: false },
+      { text: "Требуют 100% предоплату без гарантий", isProof: true },
+    ],
+    minProofs: 3,
+  },
+  {
+    title: "Пирамида инвестиций",
+    brief: "Компания обещает 50% прибыли в месяц. Докажите, что это финансовая пирамида.",
+    evidence: [
+      { text: "Обещают доходность 50% в месяц", isProof: true },
+      { text: "Нет лицензии ЦБ РФ", isProof: true },
+      { text: "Активно нанимают новых участников", isProof: true },
+      { text: "Основатель имеет офис в Москве", isProof: false },
+      { text: "Нельзя вывести деньги первые 6 месяцев", isProof: true },
+      { text: "Публикуют красивые графики роста", isProof: false },
+    ],
+    minProofs: 3,
+  },
+  {
+    title: "Поддельный интернет-магазин",
+    brief: "Магазин копирует известный бренд. Нужно доказать факт мошенничества.",
+    evidence: [
+      { text: "Домен похож на оригинал: amaz0n-shop.ru", isProof: true },
+      { text: "Цены ниже рыночных на 70%", isProof: true },
+      { text: "Нет HTTPS-сертификата", isProof: true },
+      { text: "Есть страница «О нас»", isProof: false },
+      { text: "Контакты — только форма обратной связи", isProof: true },
+      { text: "Принимают оплату только переводом на карту физлица", isProof: true },
+    ],
+    minProofs: 4,
+  },
+  {
+    title: "Схема с трудоустройством",
+    brief: "Агентство берёт деньги за 'гарантированное' трудоустройство. Разоблачите их.",
+    evidence: [
+      { text: "Требуют предоплату 15 000 руб. за резюме", isProof: true },
+      { text: "Офис снят в коворкинге", isProof: false },
+      { text: "Обещают зарплату 150 000 руб. без опыта", isProof: true },
+      { text: "Нет реальных работодателей-партнёров", isProof: true },
+      { text: "Договор не предусматривает возврат денег", isProof: true },
+      { text: "У агентства есть сайт", isProof: false },
+    ],
+    minProofs: 3,
+  },
+];
+
+function HeistGame({ onBack }: { onBack: () => void }) {
+  const [caseIdx, setCaseIdx] = useState(0);
+  const [phase, setPhase] = useState<"intro" | "collect" | "verdict" | "result">("intro");
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [solvedCount, setSolvedCount] = useState(0);
+
+  const currentCase = HEIST_CASES[caseIdx];
+  const correctSelected = [...selected].filter(i => currentCase.evidence[i].isProof).length;
+  const wrongSelected = [...selected].filter(i => !currentCase.evidence[i].isProof).length;
+  const enough = correctSelected >= currentCase.minProofs && wrongSelected === 0;
+
+  function toggleEvidence(i: number) {
+    setSelected(s => {
+      const n = new Set(s);
+      if (n.has(i)) { n.delete(i); } else { n.add(i); }
+      return n;
+    });
+  }
+
+  function submitVerdict() { setPhase("verdict"); }
+
+  function nextCase() {
+    const solved = enough ? solvedCount + 1 : solvedCount;
+    if (caseIdx + 1 >= HEIST_CASES.length) { setSolvedCount(solved); setPhase("result"); }
+    else { setSolvedCount(solved); setCaseIdx(i => i + 1); setSelected(new Set()); setPhase("collect"); }
+  }
+
+  function restart() { setCaseIdx(0); setPhase("intro"); setSelected(new Set()); setSolvedCount(0); }
+
+  return (
+    <div style={{ paddingBottom: 90 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 16px 12px" }}>
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: "#5A7A9A", padding: 0 }}>
+          <Icon name="ChevronLeft" size={18} style={{ color: "#5A7A9A" }} />
+          <span style={{ fontSize: 13, fontFamily: "'IBM Plex Sans', sans-serif" }}>Все игры</span>
+        </button>
+        <span style={{ color: "#3A5A7A" }}>·</span>
+        <span style={{ color: "#EF4444", fontSize: 13, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>Афера</span>
+      </div>
+
+      {phase === "intro" && (
+        <div style={{ padding: "0 16px" }}>
+          <div style={{ background: "linear-gradient(160deg, rgba(239,68,68,0.12), rgba(11,22,41,0.95))", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 18, padding: "20px 18px" }}>
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
+              <Icon name="Briefcase" fallback="Search" size={24} style={{ color: "#EF4444" }} />
+            </div>
+            <h3 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 20, fontWeight: 700, color: "#EEF2F8", margin: "0 0 10px" }}>АФЕРА: ДЕЛА ДЕТЕКТИВА</h3>
+            <p style={{ color: "#8BA3C0", fontSize: 12, lineHeight: 1.65, margin: "0 0 16px" }}>
+              Ты детектив финансовых преступлений. Собери только нужные улики и вынеси верный приговор мошенникам.
+            </p>
+            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+              {[["4", "дела"], ["🔎", "улики"], ["⚖️", "вердикт"]].map(([v, l], i) => (
+                <div key={i} style={{ flex: 1, background: "rgba(11,22,41,0.7)", border: "1px solid rgba(239,68,68,0.15)", borderRadius: 10, padding: "10px 8px", textAlign: "center" }}>
+                  <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 18, fontWeight: 700, color: "#EF4444" }}>{v}</div>
+                  <div style={{ color: "#5A7A9A", fontSize: 10, marginTop: 2 }}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setPhase("collect")} style={{ width: "100%", padding: "13px", borderRadius: 12, background: "linear-gradient(135deg, #B91C1C, #EF4444)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer" }}>
+              Взяться за дело
+            </button>
+          </div>
+        </div>
+      )}
+
+      {(phase === "collect" || phase === "verdict") && (
+        <div style={{ padding: "0 16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <span style={{ color: "#5A7A9A", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace" }}>Дело {caseIdx + 1} из {HEIST_CASES.length}</span>
+            <span style={{ color: "#EF4444", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace" }}>Раскрыто: {solvedCount}</span>
+          </div>
+          <div style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 12, padding: "14px", marginBottom: 12 }}>
+            <div style={{ color: "#EF4444", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", marginBottom: 6 }}>ДЕЛО: {currentCase.title}</div>
+            <p style={{ color: "#B0C8E0", fontSize: 13, margin: 0, lineHeight: 1.55 }}>{currentCase.brief}</p>
+          </div>
+          <p style={{ color: "#5A7A9A", fontSize: 12, margin: "0 0 10px" }}>Выбери улики, доказывающие мошенничество:</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+            {currentCase.evidence.map((e, i) => {
+              const isChosen = selected.has(i);
+              let bg = "rgba(11,22,41,0.85)", border = "rgba(34,130,240,0.12)", color = "#8BA3C0";
+              if (phase === "verdict") {
+                if (isChosen && e.isProof) { bg = "rgba(34,197,94,0.07)"; border = "rgba(34,197,94,0.4)"; color = "#22C55E"; }
+                else if (isChosen && !e.isProof) { bg = "rgba(239,68,68,0.07)"; border = "rgba(239,68,68,0.4)"; color = "#EF4444"; }
+                else if (!isChosen && e.isProof) { bg = "rgba(245,158,11,0.05)"; border = "rgba(245,158,11,0.25)"; color = "#F59E0B"; }
+              } else if (isChosen) { bg = "rgba(239,68,68,0.08)"; border = "rgba(239,68,68,0.35)"; color = "#EEF2F8"; }
+              return (
+                <button key={i} onClick={() => phase === "collect" && toggleEvidence(i)}
+                  style={{ width: "100%", padding: "11px 14px", borderRadius: 10, background: bg, border: `1px solid ${border}`, color, fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12, textAlign: "left", cursor: phase === "collect" ? "pointer" : "default", display: "flex", alignItems: "center", gap: 8 }}>
+                  {phase === "verdict"
+                    ? <Icon name={isChosen && e.isProof ? "CheckCircle" : isChosen && !e.isProof ? "XCircle" : !isChosen && e.isProof ? "AlertCircle" : "Circle"} fallback="Circle" size={14} style={{ flexShrink: 0, color }} />
+                    : <div style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${isChosen ? "#EF4444" : "#3A5A7A"}`, background: isChosen ? "rgba(239,68,68,0.2)" : "transparent", flexShrink: 0 }} />
+                  }
+                  {e.text}
+                </button>
+              );
+            })}
+          </div>
+          {phase === "collect" && selected.size >= currentCase.minProofs && (
+            <button onClick={submitVerdict} style={{ width: "100%", padding: "13px", borderRadius: 12, background: "linear-gradient(135deg, #B91C1C, #EF4444)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer" }}>
+              Вынести вердикт →
+            </button>
+          )}
+          {phase === "verdict" && (
+            <button onClick={nextCase} style={{ width: "100%", padding: "13px", borderRadius: 12, background: enough ? "linear-gradient(135deg, #15803D, #22C55E)" : "rgba(239,68,68,0.15)", color: enough ? "#fff" : "#EF4444", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer" }}>
+              {caseIdx + 1 < HEIST_CASES.length ? "Следующее дело →" : "Итоги дел →"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {phase === "result" && (
+        <div style={{ padding: "0 16px" }}>
+          <div style={{ background: solvedCount >= 3 ? "rgba(34,197,94,0.07)" : "rgba(245,158,11,0.07)", border: `1px solid ${solvedCount >= 3 ? "rgba(34,197,94,0.3)" : "rgba(245,158,11,0.3)"}`, borderRadius: 18, padding: "24px 18px", textAlign: "center" }}>
+            <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 52, fontWeight: 700, color: solvedCount >= 3 ? "#22C55E" : "#F59E0B", lineHeight: 1 }}>{solvedCount}/{HEIST_CASES.length}</div>
+            <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 16, fontWeight: 600, color: "#EEF2F8", margin: "8px 0 4px" }}>
+              {solvedCount >= 3 ? "Мастер-детектив!" : "Начинающий детектив"}
+            </div>
+            <p style={{ color: "#5A7A9A", fontSize: 12, margin: "0 0 18px", lineHeight: 1.55 }}>
+              {solvedCount >= 3 ? "Ты раскрыл большинство дел. Мошенники за решёткой!" : "Некоторые дела остались нераскрытыми. Попробуй ещё раз."}
+            </p>
+            <button onClick={restart} style={{ width: "100%", padding: "13px", borderRadius: 12, background: "linear-gradient(135deg, #B91C1C, #EF4444)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer" }}>
+              Новые дела
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function GamesTab() {
   const [activeGame, setActiveGame] = useState<ActiveGame>(null);
 
   if (activeGame === "hunters") return <HuntersGame onBack={() => setActiveGame(null)} />;
+  if (activeGame === "hacknet") return <HacknetGame onBack={() => setActiveGame(null)} />;
+  if (activeGame === "shadows") return <ShadowsGame onBack={() => setActiveGame(null)} />;
+  if (activeGame === "heist") return <HeistGame onBack={() => setActiveGame(null)} />;
 
   return (
     <div style={{ paddingBottom: 90 }}>
