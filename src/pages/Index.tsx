@@ -127,15 +127,7 @@ function HomeTab({ onNavigate }: { onNavigate: (t: Tab) => void }) {
         </button>
       </div>
 
-      {/* Trust row */}
-      <div style={{ margin: "0 16px", display: "flex", gap: 0, background: "rgba(11,22,41,0.8)", border: "1px solid rgba(34,130,240,0.12)", borderRadius: 14, overflow: "hidden" }}>
-        {[["150 000+", "защищённых"], ["98%", "довольны"], ["24/7", "поддержка"]].map(([val, lbl], i) => (
-          <div key={i} style={{ flex: 1, padding: "14px 8px", textAlign: "center", borderRight: i < 2 ? "1px solid rgba(34,130,240,0.1)" : "none" }}>
-            <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 18, fontWeight: 600, color: "#EEF2F8" }}>{val}</div>
-            <div style={{ color: "#5A7A9A", fontSize: 11, marginTop: 2 }}>{lbl}</div>
-          </div>
-        ))}
-      </div>
+      
     </div>
   );
 }
@@ -184,7 +176,7 @@ function StatsTab() {
         </div>
         <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(34,130,240,0.08)" }}>
           <p style={{ color: "#3A5A7A", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", margin: 0 }}>
-            МВД РФ · Банк России · апрель 2025
+            МВД РФ · Банк России · 2025
           </p>
         </div>
       </div>
