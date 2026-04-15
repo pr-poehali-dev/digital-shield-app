@@ -19,14 +19,7 @@ const RISK_REPORTS = [
   { category: "Финансовые схемы обмана", percent: 55, level: "warning" },
 ];
 
-const VIDEOS = [
-  { title: "Как распознать фишинговый сайт", duration: "12:40", level: "Базовый", views: "48 320", tag: "Фишинг", icon: "Globe" },
-  { title: "Защита личных данных в соцсетях", duration: "18:05", level: "Средний", views: "31 780", tag: "Данные", icon: "Lock" },
-  { title: "Двухфакторная аутентификация", duration: "9:15", level: "Базовый", views: "62 410", tag: "Аккаунты", icon: "Shield" },
-  { title: "Безопасность банковских приложений", duration: "22:30", level: "Продвинутый", views: "19 650", tag: "Финансы", icon: "CreditCard" },
-  { title: "Мошенничество в онлайн-играх", duration: "15:55", level: "Базовый", views: "55 900", tag: "Игры", icon: "Gamepad2" },
-  { title: "Цифровая гигиена: полный курс", duration: "45:00", level: "Продвинутый", views: "27 300", tag: "Курс", icon: "BookOpen" },
-];
+
 
 const PLANS = [
   {
@@ -50,12 +43,12 @@ const FAQ = [
   { q: "Есть ли сертификат об обучении?", a: "Да, цифровой сертификат после завершения курса." },
 ];
 
-type Tab = "home" | "stats" | "education" | "support" | "pricing";
+type Tab = "home" | "stats" | "games" | "support" | "pricing";
 
 const NAV = [
   { id: "home" as Tab, icon: "Home", label: "Главная" },
   { id: "stats" as Tab, icon: "BarChart2", label: "Статистика" },
-  { id: "education" as Tab, icon: "Play", label: "Обучение" },
+  { id: "games" as Tab, icon: "Gamepad2", label: "Игры" },
   { id: "support" as Tab, icon: "MessageCircle", label: "Поддержка" },
   { id: "pricing" as Tab, icon: "Star", label: "Подписка" },
 ];
@@ -112,11 +105,11 @@ function HomeTab({ onNavigate }: { onNavigate: (t: Tab) => void }) {
       {/* CTA buttons */}
       <div style={{ margin: "0 16px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
         <button
-          onClick={() => onNavigate("education")}
+          onClick={() => onNavigate("games")}
           style={{ width: "100%", padding: "15px", borderRadius: 14, background: "#1A6ECC", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, fontSize: 15, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
         >
-          <Icon name="Play" size={18} />
-          Начать обучение
+          <Icon name="Gamepad2" size={18} />
+          Играть
         </button>
         <button
           onClick={() => onNavigate("stats")}
@@ -192,69 +185,237 @@ function StatsTab() {
   );
 }
 
-function EducationTab() {
-  const [filter, setFilter] = useState("Все");
-  const filters = ["Все", "Базовый", "Средний", "Продвинутый"];
-  const filtered = filter === "Все" ? VIDEOS : VIDEOS.filter(v => v.level === filter);
+type GamePhase = "menu" | "playing" | "result";
+
+interface Scenario {
+  id: number;
+  message: string;
+  sender: string;
+  options: { text: string; correct: boolean; explanation: string }[];
+}
+
+const SCENARIOS: Scenario[] = [
+  {
+    id: 1,
+    message: "Поздравляем! Вы выиграли iPhone 15 Pro! Для получения приза нужно оплатить доставку 299 руб. Введите данные карты: 💳",
+    sender: "Служба доставки призов",
+    options: [
+      { text: "Ввести данные карты", correct: false, explanation: "Это классическая ловушка! Настоящие конкурсы не просят данные карты для получения приза." },
+      { text: "Игнорировать и заблокировать", correct: true, explanation: "Верно! Это мошенничество. Настоящие призы не требуют оплаты." },
+      { text: "Уточнить детали конкурса", correct: false, explanation: "Любой контакт с мошенником опасен. Лучше сразу заблокировать." },
+    ],
+  },
+  {
+    id: 2,
+    message: "Вашу карту заблокировали из-за подозрительных операций. Срочно позвоните: 8-800-XXX-XX-XX для разблокировки. — Служба безопасности Сбербанка",
+    sender: "СМС от: SberBank",
+    options: [
+      { text: "Позвонить по указанному номеру", correct: false, explanation: "Номер в СМС может быть поддельным. Мошенники перехватят ваши данные." },
+      { text: "Зайти в приложение банка и проверить статус карты", correct: true, explanation: "Правильно! Всегда проверяйте через официальное приложение, а не по номерам из СМС." },
+      { text: "Написать в чат банка по ссылке из СМС", correct: false, explanation: "Ссылки в подозрительных СМС ведут на фишинговые сайты мошенников." },
+    ],
+  },
+  {
+    id: 3,
+    message: "Привет! Я твой одноклассник Дима. Срочно нужна помощь — сломался телефон, пишу с чужого. Переведи 2000 руб, верну завтра!",
+    sender: "Незнакомый номер",
+    options: [
+      { text: "Перевести деньги, друг же просит", correct: false, explanation: "Мошенники часто притворяются знакомыми. Счёт может оказаться чужим." },
+      { text: "Позвонить Диме на его настоящий номер", correct: true, explanation: "Отлично! Всегда проверяйте через известный вам контакт, не доверяйте незнакомым номерам." },
+      { text: "Попросить прислать фото для подтверждения", correct: false, explanation: "Фото легко подделать. Только звонок на известный номер даст уверенность." },
+    ],
+  },
+  {
+    id: 4,
+    message: "Ваш аккаунт ВКонтакте будет удалён через 24 часа. Войдите для подтверждения: vk-account-verify.ru/login",
+    sender: "support@vk-service.net",
+    options: [
+      { text: "Перейти по ссылке и войти", correct: false, explanation: "Это фишинговый сайт! Адрес vk-account-verify.ru — не официальный сайт ВКонтакте." },
+      { text: "Проверить аккаунт напрямую через vk.com", correct: true, explanation: "Верно! Всегда открывайте сайты вручную, никогда не переходите по ссылкам из писем." },
+      { text: "Переслать ссылку другу для проверки", correct: false, explanation: "Не стоит подвергать риску других. Просто зайдите на официальный сайт напрямую." },
+    ],
+  },
+  {
+    id: 5,
+    message: "Работа из дома! Доход от 50 000 руб/месяц. Требования: 18+, доступ к интернету. Нужна предоплата за обучающие материалы — 1500 руб.",
+    sender: "HR-менеджер Карьера.ру",
+    options: [
+      { text: "Оплатить обучение и начать работу", correct: false, explanation: "Настоящие работодатели никогда не берут предоплату за трудоустройство — это мошенничество." },
+      { text: "Отказаться: серьёзные работодатели не берут предоплату", correct: true, explanation: "Правильно! Любая предоплата при найме — признак мошенничества." },
+      { text: "Попросить гарантии возврата денег", correct: false, explanation: "Мошенники дадут любые «гарантии», но деньги вы потеряете." },
+    ],
+  },
+];
+
+function GamesTab() {
+  const [phase, setPhase] = useState<GamePhase>("menu");
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [showExplanation, setShowExplanation] = useState(false);
+
+  const scenario = SCENARIOS[currentIdx];
+  const isLast = currentIdx === SCENARIOS.length - 1;
+
+  function startGame() {
+    setPhase("playing");
+    setCurrentIdx(0);
+    setScore(0);
+    setSelected(null);
+    setShowExplanation(false);
+  }
+
+  function handleAnswer(idx: number) {
+    if (selected !== null) return;
+    setSelected(idx);
+    setShowExplanation(true);
+    if (scenario.options[idx].correct) setScore(s => s + 1);
+  }
+
+  function handleNext() {
+    if (isLast) {
+      setPhase("result");
+    } else {
+      setCurrentIdx(i => i + 1);
+      setSelected(null);
+      setShowExplanation(false);
+    }
+  }
+
+  const scoreColor = score >= 4 ? "#22C55E" : score >= 2 ? "#F59E0B" : "#EF4444";
+  const scoreLabel = score >= 4 ? "Охотник-эксперт!" : score >= 2 ? "Неплохой охотник" : "Новичок в деле";
+
+  if (phase === "menu") return (
+    <div style={{ paddingBottom: 90, padding: "0 16px 90px" }}>
+      <div style={{ paddingTop: 4, paddingBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+          <div style={{ width: 3, height: 14, background: "#A855F7", borderRadius: 2 }} />
+          <span style={{ color: "#A855F7", fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>Интерактив</span>
+        </div>
+        <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 26, fontWeight: 700, color: "#EEF2F8", margin: "0 0 6px" }}>ИГРЫ</h2>
+      </div>
+
+      <div style={{ background: "linear-gradient(160deg, rgba(168,85,247,0.15), rgba(11,22,41,0.95))", border: "1px solid rgba(168,85,247,0.3)", borderRadius: 20, padding: "24px 20px", textAlign: "center" }}>
+        <div style={{ width: 72, height: 72, borderRadius: 20, background: "rgba(168,85,247,0.12)", border: "1px solid rgba(168,85,247,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+          <Icon name="Crosshair" fallback="Target" size={34} style={{ color: "#A855F7" }} />
+        </div>
+        <h3 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 22, fontWeight: 700, color: "#EEF2F8", margin: "0 0 8px", letterSpacing: "0.03em" }}>
+          ОХОТНИКИ НА МОШЕННИКОВ
+        </h3>
+        <p style={{ color: "#8BA3C0", fontSize: 13, lineHeight: 1.6, margin: "0 0 20px" }}>
+          Тебе покажут реальные схемы обмана. Твоя задача — распознать мошенника и выбрать правильное действие.
+        </p>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 22 }}>
+          {[["5", "сценариев"], ["🎯", "реальные схемы"], ["🏆", "рейтинг"]].map(([val, lbl], i) => (
+            <div key={i} style={{ background: "rgba(11,22,41,0.7)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 12, padding: "12px 8px" }}>
+              <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 20, fontWeight: 700, color: "#A855F7" }}>{val}</div>
+              <div style={{ color: "#5A7A9A", fontSize: 10, marginTop: 3 }}>{lbl}</div>
+            </div>
+          ))}
+        </div>
+
+        <button onClick={startGame} style={{ width: "100%", padding: "15px", borderRadius: 14, background: "linear-gradient(135deg, #7C3AED, #A855F7)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <Icon name="Crosshair" fallback="Play" size={18} />
+          Начать охоту
+        </button>
+      </div>
+    </div>
+  );
+
+  if (phase === "result") return (
+    <div style={{ paddingBottom: 90, padding: "0 16px 90px" }}>
+      <div style={{ paddingTop: 4, paddingBottom: 20 }}>
+        <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 26, fontWeight: 700, color: "#EEF2F8", margin: 0 }}>ИГРЫ</h2>
+      </div>
+
+      <div style={{ background: "linear-gradient(160deg, rgba(168,85,247,0.12), rgba(11,22,41,0.95))", border: "1px solid rgba(168,85,247,0.25)", borderRadius: 20, padding: "28px 20px", textAlign: "center" }}>
+        <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 64, fontWeight: 700, color: scoreColor, lineHeight: 1 }}>{score}/{SCENARIOS.length}</div>
+        <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 18, fontWeight: 600, color: "#EEF2F8", margin: "8px 0 4px", letterSpacing: "0.04em" }}>{scoreLabel}</div>
+        <p style={{ color: "#5A7A9A", fontSize: 13, lineHeight: 1.55, margin: "0 0 24px" }}>
+          {score >= 4 ? "Мошенникам от тебя не скрыться! Ты отлично разбираешься в схемах обмана." : score >= 2 ? "Неплохо! Ещё немного практики — и ты станешь настоящим экспертом." : "Мошенники опасны! Пройди ещё раз, чтобы лучше их распознавать."}
+        </p>
+        <button onClick={startGame} style={{ width: "100%", padding: "14px", borderRadius: 14, background: "linear-gradient(135deg, #7C3AED, #A855F7)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}>
+          Сыграть ещё раз
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ paddingBottom: 90 }}>
-      <div style={{ padding: "4px 16px 16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-          <div style={{ width: 3, height: 14, background: "#2282F0", borderRadius: 2 }} />
-          <span style={{ color: "#2282F0", fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>Видеокурсы</span>
+      {/* Progress */}
+      <div style={{ padding: "0 16px 16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+          <span style={{ color: "#5A7A9A", fontSize: 12, fontFamily: "'IBM Plex Mono', monospace" }}>Сценарий {currentIdx + 1} из {SCENARIOS.length}</span>
+          <span style={{ color: "#A855F7", fontSize: 12, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>Очки: {score}</span>
         </div>
-        <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 26, fontWeight: 700, color: "#EEF2F8", margin: "0 0 14px" }}>ОБУЧЕНИЕ</h2>
-
-        {/* Filter chips */}
-        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
-          {filters.map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              style={{
-                flexShrink: 0, padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: "pointer",
-                fontFamily: "'IBM Plex Sans', sans-serif",
-                background: filter === f ? "#1A6ECC" : "rgba(34,130,240,0.08)",
-                color: filter === f ? "#fff" : "#5A7A9A",
-                border: filter === f ? "none" : "1px solid rgba(34,130,240,0.15)",
-              }}
-            >{f}</button>
-          ))}
+        <div style={{ width: "100%", height: 4, background: "rgba(168,85,247,0.1)", borderRadius: 2 }}>
+          <div style={{ width: `${((currentIdx + 1) / SCENARIOS.length) * 100}%`, height: "100%", background: "linear-gradient(90deg, #7C3AED, #A855F7)", borderRadius: 2, transition: "width 0.4s ease" }} />
         </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "0 16px" }}>
-        {filtered.map((v, i) => (
-          <div key={i} style={{ background: "rgba(11,22,41,0.85)", border: "1px solid rgba(34,130,240,0.12)", borderRadius: 16, overflow: "hidden", display: "flex", alignItems: "stretch" }}>
-            {/* Thumbnail */}
-            <div style={{ width: 90, flexShrink: 0, background: "linear-gradient(135deg, rgba(15,30,56,0.95), rgba(6,13,31,1))", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(34,130,240,0.12)", border: "1px solid rgba(34,130,240,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Icon name={v.icon} fallback="Play" size={18} style={{ color: "#2282F0" }} />
-              </div>
-              <div style={{ position: "absolute", bottom: 6, left: "50%", transform: "translateX(-50%)", whiteSpace: "nowrap", padding: "2px 6px", borderRadius: 4, background: "rgba(0,0,0,0.7)", color: "#B0C8E0", fontSize: 10, fontFamily: "'IBM Plex Mono', monospace" }}>
-                {v.duration}
-              </div>
-            </div>
-            {/* Info */}
-            <div style={{ flex: 1, padding: "12px 14px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                <span style={{ padding: "2px 8px", borderRadius: 4, fontSize: 10, fontWeight: 500, background: "rgba(34,130,240,0.12)", color: "#2282F0" }}>{v.tag}</span>
-                <span style={{ fontSize: 10, color: v.level === "Базовый" ? "#22C55E" : v.level === "Средний" ? "#F59E0B" : "#EF4444" }}>{v.level}</span>
-              </div>
-              <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 15, fontWeight: 500, color: "#EEF2F8", lineHeight: 1.35, marginBottom: 8 }}>{v.title}</div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontSize: 11, color: "#3A5A7A", display: "flex", alignItems: "center", gap: 4 }}>
-                  <Icon name="Eye" fallback="Eye" size={11} />
-                  {v.views}
-                </span>
-                <button style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 8, background: "rgba(34,130,240,0.12)", color: "#2282F0", border: "none", fontSize: 12, cursor: "pointer", fontFamily: "'IBM Plex Sans', sans-serif" }}>
-                  <Icon name="Play" size={11} />
-                  Смотреть
-                </button>
-              </div>
-            </div>
+      {/* Message card */}
+      <div style={{ margin: "0 16px 16px", background: "rgba(11,22,41,0.9)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 16, padding: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="AlertCircle" fallback="AlertCircle" size={15} style={{ color: "#EF4444" }} />
           </div>
-        ))}
+          <div>
+            <div style={{ color: "#EF4444", fontSize: 11, fontWeight: 600, fontFamily: "'IBM Plex Mono', monospace" }}>ПОДОЗРИТЕЛЬНОЕ СООБЩЕНИЕ</div>
+            <div style={{ color: "#5A7A9A", fontSize: 11 }}>От: {scenario.sender}</div>
+          </div>
+        </div>
+        <div style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.1)", borderRadius: 10, padding: "12px 14px" }}>
+          <p style={{ color: "#EEF2F8", fontSize: 14, lineHeight: 1.65, margin: 0 }}>{scenario.message}</p>
+        </div>
       </div>
+
+      {/* Question */}
+      <div style={{ padding: "0 16px 12px" }}>
+        <p style={{ color: "#B0C8E0", fontSize: 14, fontWeight: 600, margin: "0 0 12px", fontFamily: "'IBM Plex Sans', sans-serif" }}>Что ты сделаешь?</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {scenario.options.map((opt, idx) => {
+            const isSelected = selected === idx;
+            const isCorrect = opt.correct;
+            let borderColor = "rgba(34,130,240,0.15)";
+            let bg = "rgba(11,22,41,0.85)";
+            let textColor = "#B0C8E0";
+            if (selected !== null) {
+              if (isCorrect) { borderColor = "rgba(34,197,94,0.5)"; bg = "rgba(34,197,94,0.07)"; textColor = "#22C55E"; }
+              else if (isSelected) { borderColor = "rgba(239,68,68,0.5)"; bg = "rgba(239,68,68,0.07)"; textColor = "#EF4444"; }
+            }
+            return (
+              <button key={idx} onClick={() => handleAnswer(idx)}
+                style={{ width: "100%", padding: "13px 14px", borderRadius: 12, background: bg, border: `1px solid ${borderColor}`, color: textColor, fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 13, textAlign: "left", cursor: selected !== null ? "default" : "pointer", display: "flex", alignItems: "center", gap: 10 }}
+              >
+                {selected !== null && (
+                  <Icon name={isCorrect ? "CheckCircle" : isSelected ? "XCircle" : "Circle"} fallback="Circle" size={16} style={{ flexShrink: 0, color: isCorrect ? "#22C55E" : isSelected ? "#EF4444" : "#3A5A7A" }} />
+                )}
+                <span style={{ lineHeight: 1.45 }}>{opt.text}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Explanation */}
+      {showExplanation && (
+        <div style={{ margin: "0 16px 16px", background: selected !== null && scenario.options[selected].correct ? "rgba(34,197,94,0.06)" : "rgba(239,68,68,0.06)", border: `1px solid ${selected !== null && scenario.options[selected].correct ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}`, borderRadius: 12, padding: "14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+            <Icon name={selected !== null && scenario.options[selected].correct ? "CheckCircle" : "XCircle"} fallback="Info" size={14} style={{ color: selected !== null && scenario.options[selected].correct ? "#22C55E" : "#EF4444" }} />
+            <span style={{ fontWeight: 600, fontSize: 12, color: selected !== null && scenario.options[selected].correct ? "#22C55E" : "#EF4444", fontFamily: "'IBM Plex Mono', monospace" }}>
+              {selected !== null && scenario.options[selected].correct ? "ПРАВИЛЬНО!" : "НЕВЕРНО"}
+            </span>
+          </div>
+          <p style={{ color: "#8BA3C0", fontSize: 13, lineHeight: 1.6, margin: 0 }}>
+            {selected !== null ? scenario.options[selected].explanation : ""}
+          </p>
+          <button onClick={handleNext} style={{ marginTop: 12, width: "100%", padding: "11px", borderRadius: 10, background: "#1A6ECC", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, fontSize: 13, border: "none", cursor: "pointer" }}>
+            {isLast ? "Посмотреть результат" : "Следующий сценарий →"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -409,7 +570,7 @@ export default function Index() {
   const CONTENT: Record<Tab, JSX.Element> = {
     home: <HomeTab onNavigate={setTab} />,
     stats: <StatsTab />,
-    education: <EducationTab />,
+    games: <GamesTab />,
     support: <SupportTab />,
     pricing: <PricingTab />,
   };
