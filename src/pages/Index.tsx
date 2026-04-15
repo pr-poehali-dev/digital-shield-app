@@ -1271,7 +1271,7 @@ function RatingTab() {
             <div key={p.id} style={{ flex: 1, height: heights[i], background: `linear-gradient(180deg, ${colors[i]}22, rgba(11,22,41,0.9))`, border: `1px solid ${colors[i]}40`, borderRadius: "10px 10px 0 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 3 }}>
               <span style={{ fontSize: 18 }}>{p.medal}</span>
               <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 12, fontWeight: 600, color: colors[i] }}>{p.name}</span>
-              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "#5A7A9A" }}>{p.score.toLocaleString()}</span>
+              
             </div>
           );
         })}
@@ -1305,15 +1305,7 @@ function RatingTab() {
                   <span style={{ padding: "1px 7px", borderRadius: 4, fontSize: 10, fontWeight: 600, background: `${gameColor}15`, color: gameColor, fontFamily: "'IBM Plex Mono', monospace" }}>{r.game}</span>
                 </div>
               )}
-              <div style={{ textAlign: "right", flexShrink: 0 }}>
-                {isEmpty
-                  ? <div style={{ height: 10, width: 36, borderRadius: 4, background: "rgba(255,255,255,0.04)" }} />
-                  : <>
-                    <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 16, fontWeight: 700, color: isTop3 ? gameColor : "#5A7A9A" }}>{r.score.toLocaleString()}</div>
-                    <div style={{ fontSize: 10, color: "#3A5A7A", fontFamily: "'IBM Plex Mono', monospace" }}>очков</div>
-                  </>
-                }
-              </div>
+              
             </div>
           );
         })}
