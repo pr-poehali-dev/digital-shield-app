@@ -1325,11 +1325,21 @@ export default function Index() {
           </div>
           <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 26, fontWeight: 700, color: "#EEF2F8", margin: "0 0 6px" }}>ОБУЧЕНИЕ</h2>
         </div>
-        <div style={{ margin: "0 16px", background: "rgba(11,22,41,0.7)", border: "1px solid rgba(34,130,240,0.1)", borderRadius: 16, padding: "40px 20px", textAlign: "center" }}>
-          <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(34,130,240,0.08)", border: "1px solid rgba(34,130,240,0.15)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
-            <Icon name="BookOpen" fallback="Book" size={22} style={{ color: "#2A4A6A" }} />
+        <div style={{ margin: "0 16px", background: "rgba(11,22,41,0.7)", border: "1px solid rgba(34,130,240,0.1)", borderRadius: 16, overflow: "hidden" }}>
+          <div style={{ padding: "14px 16px 12px", borderBottom: "1px solid rgba(34,130,240,0.1)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Icon name="Play" size={14} style={{ color: "#2282F0" }} />
+              <span style={{ color: "#B0C8E0", fontSize: 13, fontWeight: 600 }}>Масккод</span>
+            </div>
           </div>
-          <p style={{ color: "#2A4A6A", fontSize: 13, fontFamily: "'IBM Plex Mono', monospace", margin: 0 }}>Скоро здесь появятся курсы</p>
+          <div style={{ position: "relative", paddingBottom: "56.25%", height: 0 }}>
+            <iframe
+              src="https://rutube.ru/play/embed/b06b10f0e63afd585c6e28e27f4d09cb/?p=abTEKBpWtiRRxKUsGzo3_w"
+              style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: "none" }}
+              allowFullScreen
+              allow="clipboard-write; autoplay"
+            />
+          </div>
         </div>
       </div>
     ),
