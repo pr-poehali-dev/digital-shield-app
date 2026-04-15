@@ -23,9 +23,9 @@ const RISK_REPORTS = [
 
 const PLANS = [
   {
-    name: "Базовый", price: "0 ₽", period: "навсегда", desc: "Для начинающих", featured: false,
+    name: "Базовый", price: "150 ₽", period: "в месяц", desc: "", featured: false,
     features: ["Создание собственных мошеннических игр", "Личный куратор 24/7", "Решение продвинутых мошеннических игр"],
-    cta: "Начать бесплатно",
+    cta: "Оформить подписку",
   },
 ];
 
@@ -43,7 +43,7 @@ const FAQ = [
   { q: "Есть ли сертификат об обучении?", a: "Да, цифровой сертификат после завершения курса." },
 ];
 
-type Tab = "home" | "stats" | "games" | "support" | "pricing";
+type Tab = "home" | "stats" | "games" | "support" | "pricing" | "rating";
 
 const NAV = [
   { id: "home" as Tab, icon: "Home", label: "Главная" },
@@ -51,6 +51,7 @@ const NAV = [
   { id: "games" as Tab, icon: "Gamepad2", label: "Игры" },
   { id: "support" as Tab, icon: "MessageCircle", label: "Поддержка" },
   { id: "pricing" as Tab, icon: "Star", label: "Подписка" },
+  { id: "rating" as Tab, icon: "Trophy", label: "Рейтинг" },
 ];
 
 function RiskBar({ percent, level }: { percent: number; level: string }) {
@@ -1039,6 +1040,89 @@ function PricingTab() {
   );
 }
 
+const RATING_DATA = [
+  { place: 1, id: "#KS-00142", name: "CyberFox", game: "Охотники на мошенников", score: 4980, medal: "🥇" },
+  { place: 2, id: "#KS-00087", name: "ShadowHunt", game: "Тени обмана", score: 4610, medal: "🥈" },
+  { place: 3, id: "#KS-00315", name: "NetBreaker", game: "Hacknet", score: 4450, medal: "🥉" },
+  { place: 4, id: "#KS-00229", name: "AgentX", game: "Афера", score: 4120, medal: null },
+  { place: 5, id: "#KS-00503", name: "DigitalShield", game: "Охотники на мошенников", score: 3870, medal: null },
+  { place: 6, id: "#KS-00011", name: "PhantomUser", game: "Тени обмана", score: 3640, medal: null },
+  { place: 7, id: "#KS-00478", name: "HackMaster", game: "Hacknet", score: 3390, medal: null },
+  { place: 8, id: "#KS-00192", name: "ScamBuster", game: "Афера", score: 3150, medal: null },
+  { place: 9, id: "#KS-00356", name: "CyberGuard", game: "Охотники на мошенников", score: 2980, medal: null },
+  { place: 10, id: "#KS-00044", name: "ProDetective", game: "Тени обмана", score: 2710, medal: null },
+];
+
+const GAME_COLORS: Record<string, string> = {
+  "Охотники на мошенников": "#A855F7",
+  "Hacknet": "#22D3EE",
+  "Тени обмана": "#F59E0B",
+  "Афера": "#EF4444",
+};
+
+function RatingTab() {
+  return (
+    <div style={{ paddingBottom: 90 }}>
+      <div style={{ padding: "4px 16px 16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+          <div style={{ width: 3, height: 14, background: "#C9A84C", borderRadius: 2 }} />
+          <span style={{ color: "#C9A84C", fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>Топ игроков</span>
+        </div>
+        <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 26, fontWeight: 700, color: "#EEF2F8", margin: "0 0 4px" }}>РЕЙТИНГ ИГР</h2>
+        <p style={{ color: "#5A7A9A", fontSize: 12, margin: 0 }}>Лучшие игроки платформы</p>
+      </div>
+
+      {/* Top-3 podium */}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 8, margin: "0 16px 20px", height: 110 }}>
+        {[RATING_DATA[1], RATING_DATA[0], RATING_DATA[2]].map((p, i) => {
+          const heights = [80, 110, 70];
+          const colors = ["#9CA3AF", "#C9A84C", "#CD7F32"];
+          return (
+            <div key={p.id} style={{ flex: 1, height: heights[i], background: `linear-gradient(180deg, ${colors[i]}22, rgba(11,22,41,0.9))`, border: `1px solid ${colors[i]}40`, borderRadius: "10px 10px 0 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 3 }}>
+              <span style={{ fontSize: 18 }}>{p.medal}</span>
+              <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 12, fontWeight: 600, color: colors[i] }}>{p.name}</span>
+              <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "#5A7A9A" }}>{p.score.toLocaleString()}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Full list */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "0 16px" }}>
+        {RATING_DATA.map((r) => {
+          const gameColor = GAME_COLORS[r.game] || "#2282F0";
+          const isTop3 = r.place <= 3;
+          return (
+            <div key={r.id} style={{ background: isTop3 ? `linear-gradient(135deg, ${gameColor}10, rgba(11,22,41,0.9))` : "rgba(11,22,41,0.8)", border: `1px solid ${isTop3 ? `${gameColor}30` : "rgba(34,130,240,0.1)"}`, borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: isTop3 ? `${gameColor}18` : "rgba(34,130,240,0.06)", border: `1px solid ${isTop3 ? `${gameColor}40` : "rgba(34,130,240,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                {r.medal
+                  ? <span style={{ fontSize: 16 }}>{r.medal}</span>
+                  : <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 13, fontWeight: 700, color: "#3A5A7A" }}>{r.place}</span>
+                }
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                  <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 14, fontWeight: 600, color: "#EEF2F8" }}>{r.name}</span>
+                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "#3A5A7A" }}>{r.id}</span>
+                </div>
+                <span style={{ padding: "1px 7px", borderRadius: 4, fontSize: 10, fontWeight: 600, background: `${gameColor}15`, color: gameColor, fontFamily: "'IBM Plex Mono', monospace" }}>{r.game}</span>
+              </div>
+              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 16, fontWeight: 700, color: isTop3 ? gameColor : "#5A7A9A" }}>{r.score.toLocaleString()}</div>
+                <div style={{ fontSize: 10, color: "#3A5A7A", fontFamily: "'IBM Plex Mono', monospace" }}>очков</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <p style={{ textAlign: "center", margin: "16px 16px 0", color: "#3A5A7A", fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", lineHeight: 1.6 }}>
+        Обновляется каждые 24 часа · апрель 2025
+      </p>
+    </div>
+  );
+}
+
 export default function Index() {
   const [tab, setTab] = useState<Tab>("home");
 
@@ -1048,6 +1132,7 @@ export default function Index() {
     games: <GamesTab />,
     support: <SupportTab />,
     pricing: <PricingTab />,
+    rating: <RatingTab />,
   };
 
   return (
@@ -1099,15 +1184,15 @@ export default function Index() {
               <button key={n.id} onClick={() => setTab(n.id)}
                 style={{
                   flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                  gap: 4, padding: "10px 4px 10px", border: "none", background: "none", cursor: "pointer",
-                  position: "relative",
+                  gap: 3, padding: "8px 2px 8px", border: "none", background: "none", cursor: "pointer",
+                  position: "relative", minWidth: 0,
                 }}
               >
                 {active && (
-                  <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 24, height: 2, background: "#2282F0", borderRadius: "0 0 2px 2px" }} />
+                  <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 20, height: 2, background: "#2282F0", borderRadius: "0 0 2px 2px" }} />
                 )}
-                <Icon name={n.icon} fallback="Circle" size={20} style={{ color: active ? "#2282F0" : "#3A5A7A" }} />
-                <span style={{ fontSize: 10, fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: active ? 600 : 400, color: active ? "#2282F0" : "#3A5A7A" }}>
+                <Icon name={n.icon} fallback="Circle" size={17} style={{ color: active ? "#2282F0" : "#3A5A7A" }} />
+                <span style={{ fontSize: 9, fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: active ? 600 : 400, color: active ? "#2282F0" : "#3A5A7A", lineHeight: 1.2, textAlign: "center" }}>
                   {n.label}
                 </span>
               </button>
