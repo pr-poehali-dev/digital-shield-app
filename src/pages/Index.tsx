@@ -4,10 +4,10 @@ import Icon from "@/components/ui/icon";
 const HERO_IMAGE = "https://cdn.poehali.dev/projects/0f0e92f1-8c32-44b1-a5a4-d99f9d8f7d20/bucket/7ed6c6aa-7b0b-4026-8f79-90a0609b2f24.jpg";
 
 const STATS_DATA = [
-  { value: "74%", label: "молодёжи сталкивались с мошенничеством", color: "#EF4444", icon: "AlertTriangle" },
-  { value: "₽2.1 млрд", label: "потери в 2024 году", color: "#F59E0B", icon: "TrendingDown" },
-  { value: "3.8 млн", label: "инцидентов за год", color: "#2282F0", icon: "Activity" },
-  { value: "12 лет", label: "средний возраст первой угрозы", color: "#22D3EE", icon: "Users" },
+  { value: "30%", label: "молодёжи сталкивались с мошенничеством", color: "#EF4444", icon: "AlertTriangle" },
+  { value: "₽150 млрд", label: "потери в 2024 году", color: "#F59E0B", icon: "TrendingDown" },
+  { value: "564 тыс", label: "инцидентов за год", color: "#2282F0", icon: "Activity" },
+  { value: "Дагестан", label: "самый опасный регион", color: "#22D3EE", icon: "MapPin" },
 ];
 
 const RISK_REPORTS = [
