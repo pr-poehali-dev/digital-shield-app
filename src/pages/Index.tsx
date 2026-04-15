@@ -185,6 +185,7 @@ function StatsTab() {
   );
 }
 
+type ActiveGame = "hunters" | null;
 type GamePhase = "menu" | "playing" | "result";
 
 interface Scenario {
@@ -247,7 +248,16 @@ const SCENARIOS: Scenario[] = [
   },
 ];
 
-function GamesTab() {
+const GAME_LIST = [
+  { id: "hunters", title: "Охотники на мошенников", desc: "Распознай схему и выбери верное действие", icon: "Crosshair", color: "#A855F7", gradient: "rgba(168,85,247,0.18)", border: "rgba(168,85,247,0.35)", tag: "Квиз", rounds: "5 раундов" },
+  { id: "hacknet", title: "Hacknet", desc: "Взломай систему до того, как тебя отследят", icon: "Terminal", color: "#22D3EE", gradient: "rgba(34,211,238,0.12)", border: "rgba(34,211,238,0.3)", tag: "Скоро", rounds: "В разработке" },
+  { id: "shadows", title: "Тени обмана", desc: "Детективная история: найди мошенника среди NPC", icon: "Eye", color: "#F59E0B", gradient: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.3)", tag: "Скоро", rounds: "В разработке" },
+  { id: "heist", title: "Афера", desc: "Стань детективом и раскрой финансовую схему", icon: "Briefcase", color: "#EF4444", gradient: "rgba(239,68,68,0.12)", border: "rgba(239,68,68,0.3)", tag: "Скоро", rounds: "В разработке" },
+  { id: "codex", title: "Код мошенника", desc: "Расшифруй послания и обезвредь преступника", icon: "Code2", color: "#22C55E", gradient: "rgba(34,197,94,0.12)", border: "rgba(34,197,94,0.3)", tag: "Скоро", rounds: "В разработке" },
+  { id: "price", title: "Цена обмана", desc: "Симулятор: защити бюджет от атак мошенников", icon: "CircleDollarSign", color: "#FB923C", gradient: "rgba(251,146,60,0.12)", border: "rgba(251,146,60,0.3)", tag: "Скоро", rounds: "В разработке" },
+];
+
+function HuntersGame({ onBack }: { onBack: () => void }) {
   const [phase, setPhase] = useState<GamePhase>("menu");
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
@@ -273,149 +283,170 @@ function GamesTab() {
   }
 
   function handleNext() {
-    if (isLast) {
-      setPhase("result");
-    } else {
-      setCurrentIdx(i => i + 1);
-      setSelected(null);
-      setShowExplanation(false);
-    }
+    if (isLast) { setPhase("result"); }
+    else { setCurrentIdx(i => i + 1); setSelected(null); setShowExplanation(false); }
   }
 
   const scoreColor = score >= 4 ? "#22C55E" : score >= 2 ? "#F59E0B" : "#EF4444";
   const scoreLabel = score >= 4 ? "Охотник-эксперт!" : score >= 2 ? "Неплохой охотник" : "Новичок в деле";
 
-  if (phase === "menu") return (
-    <div style={{ paddingBottom: 90, padding: "0 16px 90px" }}>
-      <div style={{ paddingTop: 4, paddingBottom: 20 }}>
+  return (
+    <div style={{ paddingBottom: 90 }}>
+      {/* Back header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 16px 14px" }}>
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: "#5A7A9A", padding: 0 }}>
+          <Icon name="ChevronLeft" size={18} style={{ color: "#5A7A9A" }} />
+          <span style={{ fontSize: 13, fontFamily: "'IBM Plex Sans', sans-serif" }}>Все игры</span>
+        </button>
+        <span style={{ color: "#3A5A7A", fontSize: 13 }}>·</span>
+        <span style={{ color: "#A855F7", fontSize: 13, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>Охотники на мошенников</span>
+      </div>
+
+      {phase === "menu" && (
+        <div style={{ padding: "0 16px" }}>
+          <div style={{ background: "linear-gradient(160deg, rgba(168,85,247,0.15), rgba(11,22,41,0.95))", border: "1px solid rgba(168,85,247,0.3)", borderRadius: 18, padding: "20px 18px", textAlign: "center" }}>
+            <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(168,85,247,0.12)", border: "1px solid rgba(168,85,247,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
+              <Icon name="Crosshair" fallback="Target" size={26} style={{ color: "#A855F7" }} />
+            </div>
+            <h3 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 20, fontWeight: 700, color: "#EEF2F8", margin: "0 0 8px" }}>ОХОТНИКИ НА МОШЕННИКОВ</h3>
+            <p style={{ color: "#8BA3C0", fontSize: 12, lineHeight: 1.6, margin: "0 0 16px" }}>Распознай реальные схемы обмана и выбери верное действие.</p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 16 }}>
+              {[["5", "раундов"], ["🎯", "схемы"], ["🏆", "очки"]].map(([v, l], i) => (
+                <div key={i} style={{ background: "rgba(11,22,41,0.7)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 10, padding: "10px 12px", textAlign: "center" }}>
+                  <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 18, fontWeight: 700, color: "#A855F7" }}>{v}</div>
+                  <div style={{ color: "#5A7A9A", fontSize: 10, marginTop: 2 }}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <button onClick={startGame} style={{ width: "100%", padding: "13px", borderRadius: 12, background: "linear-gradient(135deg, #7C3AED, #A855F7)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <Icon name="Crosshair" fallback="Play" size={16} /> Начать охоту
+            </button>
+          </div>
+        </div>
+      )}
+
+      {phase === "result" && (
+        <div style={{ padding: "0 16px" }}>
+          <div style={{ background: "linear-gradient(160deg, rgba(168,85,247,0.12), rgba(11,22,41,0.95))", border: "1px solid rgba(168,85,247,0.25)", borderRadius: 18, padding: "24px 18px", textAlign: "center" }}>
+            <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 56, fontWeight: 700, color: scoreColor, lineHeight: 1 }}>{score}/{SCENARIOS.length}</div>
+            <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 17, fontWeight: 600, color: "#EEF2F8", margin: "8px 0 4px" }}>{scoreLabel}</div>
+            <p style={{ color: "#5A7A9A", fontSize: 12, lineHeight: 1.55, margin: "0 0 20px" }}>
+              {score >= 4 ? "Мошенникам от тебя не скрыться!" : score >= 2 ? "Неплохо! Ещё немного практики." : "Мошенники опасны — пройди ещё раз!"}
+            </p>
+            <button onClick={startGame} style={{ width: "100%", padding: "13px", borderRadius: 12, background: "linear-gradient(135deg, #7C3AED, #A855F7)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer" }}>
+              Сыграть ещё раз
+            </button>
+          </div>
+        </div>
+      )}
+
+      {phase === "playing" && (
+        <>
+          <div style={{ padding: "0 16px 14px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+              <span style={{ color: "#5A7A9A", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace" }}>Сценарий {currentIdx + 1} из {SCENARIOS.length}</span>
+              <span style={{ color: "#A855F7", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>Очки: {score}</span>
+            </div>
+            <div style={{ width: "100%", height: 3, background: "rgba(168,85,247,0.1)", borderRadius: 2 }}>
+              <div style={{ width: `${((currentIdx + 1) / SCENARIOS.length) * 100}%`, height: "100%", background: "linear-gradient(90deg, #7C3AED, #A855F7)", borderRadius: 2 }} />
+            </div>
+          </div>
+          <div style={{ margin: "0 16px 12px", background: "rgba(11,22,41,0.9)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 14, padding: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 7, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name="AlertCircle" fallback="AlertCircle" size={13} style={{ color: "#EF4444" }} />
+              </div>
+              <div>
+                <div style={{ color: "#EF4444", fontSize: 10, fontWeight: 600, fontFamily: "'IBM Plex Mono', monospace" }}>ПОДОЗРИТЕЛЬНОЕ СООБЩЕНИЕ</div>
+                <div style={{ color: "#5A7A9A", fontSize: 10 }}>От: {scenario.sender}</div>
+              </div>
+            </div>
+            <div style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.08)", borderRadius: 8, padding: "10px 12px" }}>
+              <p style={{ color: "#EEF2F8", fontSize: 13, lineHeight: 1.6, margin: 0 }}>{scenario.message}</p>
+            </div>
+          </div>
+          <div style={{ padding: "0 16px 10px" }}>
+            <p style={{ color: "#B0C8E0", fontSize: 13, fontWeight: 600, margin: "0 0 10px" }}>Что ты сделаешь?</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {scenario.options.map((opt, idx) => {
+                const isSelected = selected === idx;
+                const isCorrect = opt.correct;
+                let borderColor = "rgba(34,130,240,0.15)", bg = "rgba(11,22,41,0.85)", textColor = "#B0C8E0";
+                if (selected !== null) {
+                  if (isCorrect) { borderColor = "rgba(34,197,94,0.5)"; bg = "rgba(34,197,94,0.07)"; textColor = "#22C55E"; }
+                  else if (isSelected) { borderColor = "rgba(239,68,68,0.5)"; bg = "rgba(239,68,68,0.07)"; textColor = "#EF4444"; }
+                }
+                return (
+                  <button key={idx} onClick={() => handleAnswer(idx)}
+                    style={{ width: "100%", padding: "11px 13px", borderRadius: 10, background: bg, border: `1px solid ${borderColor}`, color: textColor, fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 12, textAlign: "left", cursor: selected !== null ? "default" : "pointer", display: "flex", alignItems: "center", gap: 8 }}
+                  >
+                    {selected !== null && <Icon name={isCorrect ? "CheckCircle" : isSelected ? "XCircle" : "Circle"} fallback="Circle" size={14} style={{ flexShrink: 0, color: isCorrect ? "#22C55E" : isSelected ? "#EF4444" : "#3A5A7A" }} />}
+                    <span style={{ lineHeight: 1.45 }}>{opt.text}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {showExplanation && (
+            <div style={{ margin: "0 16px 16px", background: selected !== null && scenario.options[selected].correct ? "rgba(34,197,94,0.06)" : "rgba(239,68,68,0.06)", border: `1px solid ${selected !== null && scenario.options[selected].correct ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}`, borderRadius: 10, padding: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                <Icon name={selected !== null && scenario.options[selected].correct ? "CheckCircle" : "XCircle"} fallback="Info" size={13} style={{ color: selected !== null && scenario.options[selected].correct ? "#22C55E" : "#EF4444" }} />
+                <span style={{ fontWeight: 600, fontSize: 11, color: selected !== null && scenario.options[selected].correct ? "#22C55E" : "#EF4444", fontFamily: "'IBM Plex Mono', monospace" }}>
+                  {selected !== null && scenario.options[selected].correct ? "ПРАВИЛЬНО!" : "НЕВЕРНО"}
+                </span>
+              </div>
+              <p style={{ color: "#8BA3C0", fontSize: 12, lineHeight: 1.6, margin: "0 0 10px" }}>{selected !== null ? scenario.options[selected].explanation : ""}</p>
+              <button onClick={handleNext} style={{ width: "100%", padding: "10px", borderRadius: 8, background: "#1A6ECC", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, fontSize: 12, border: "none", cursor: "pointer" }}>
+                {isLast ? "Посмотреть результат" : "Следующий →"}
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function GamesTab() {
+  const [activeGame, setActiveGame] = useState<ActiveGame>(null);
+
+  if (activeGame === "hunters") return <HuntersGame onBack={() => setActiveGame(null)} />;
+
+  return (
+    <div style={{ paddingBottom: 90 }}>
+      <div style={{ padding: "4px 16px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
           <div style={{ width: 3, height: 14, background: "#A855F7", borderRadius: 2 }} />
           <span style={{ color: "#A855F7", fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>Интерактив</span>
         </div>
-        <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 26, fontWeight: 700, color: "#EEF2F8", margin: "0 0 6px" }}>ИГРЫ</h2>
+        <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 26, fontWeight: 700, color: "#EEF2F8", margin: "0 0 4px" }}>ИГРЫ</h2>
+        <p style={{ color: "#5A7A9A", fontSize: 12, margin: 0 }}>{GAME_LIST.filter(g => g.tag !== "Скоро").length} доступно · {GAME_LIST.filter(g => g.tag === "Скоро").length} скоро</p>
       </div>
 
-      <div style={{ background: "linear-gradient(160deg, rgba(168,85,247,0.15), rgba(11,22,41,0.95))", border: "1px solid rgba(168,85,247,0.3)", borderRadius: 20, padding: "24px 20px", textAlign: "center" }}>
-        <div style={{ width: 72, height: 72, borderRadius: 20, background: "rgba(168,85,247,0.12)", border: "1px solid rgba(168,85,247,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
-          <Icon name="Crosshair" fallback="Target" size={34} style={{ color: "#A855F7" }} />
-        </div>
-        <h3 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 22, fontWeight: 700, color: "#EEF2F8", margin: "0 0 8px", letterSpacing: "0.03em" }}>
-          ОХОТНИКИ НА МОШЕННИКОВ
-        </h3>
-        <p style={{ color: "#8BA3C0", fontSize: 13, lineHeight: 1.6, margin: "0 0 20px" }}>
-          Тебе покажут реальные схемы обмана. Твоя задача — распознать мошенника и выбрать правильное действие.
-        </p>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 22 }}>
-          {[["5", "сценариев"], ["🎯", "реальные схемы"], ["🏆", "рейтинг"]].map(([val, lbl], i) => (
-            <div key={i} style={{ background: "rgba(11,22,41,0.7)", border: "1px solid rgba(168,85,247,0.15)", borderRadius: 12, padding: "12px 8px" }}>
-              <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 20, fontWeight: 700, color: "#A855F7" }}>{val}</div>
-              <div style={{ color: "#5A7A9A", fontSize: 10, marginTop: 3 }}>{lbl}</div>
-            </div>
-          ))}
-        </div>
-
-        <button onClick={startGame} style={{ width: "100%", padding: "15px", borderRadius: 14, background: "linear-gradient(135deg, #7C3AED, #A855F7)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-          <Icon name="Crosshair" fallback="Play" size={18} />
-          Начать охоту
-        </button>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "0 16px" }}>
+        {GAME_LIST.map((g) => {
+          const available = g.tag !== "Скоро";
+          return (
+            <button key={g.id}
+              onClick={() => available ? setActiveGame(g.id as ActiveGame) : undefined}
+              style={{ width: "100%", background: `linear-gradient(135deg, ${g.gradient}, rgba(11,22,41,0.92))`, border: `1px solid ${available ? g.border : "rgba(255,255,255,0.06)"}`, borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, textAlign: "left", cursor: available ? "pointer" : "default", opacity: available ? 1 : 0.6 }}
+            >
+              <div style={{ width: 46, height: 46, borderRadius: 13, background: available ? `${g.gradient}` : "rgba(255,255,255,0.04)", border: `1px solid ${available ? g.border : "rgba(255,255,255,0.06)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Icon name={g.icon} fallback="Gamepad2" size={20} style={{ color: available ? g.color : "#3A5A7A" }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+                  <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 15, fontWeight: 600, color: available ? "#EEF2F8" : "#3A5A7A" }}>{g.title}</span>
+                  <span style={{ padding: "1px 7px", borderRadius: 4, fontSize: 9, fontWeight: 700, background: available ? `${g.color}20` : "rgba(255,255,255,0.05)", color: available ? g.color : "#3A5A7A", fontFamily: "'IBM Plex Mono', monospace", letterSpacing: "0.06em" }}>{g.tag}</span>
+                </div>
+                <p style={{ color: "#5A7A9A", fontSize: 11, margin: "0 0 4px", lineHeight: 1.4 }}>{g.desc}</p>
+                <span style={{ fontSize: 10, color: available ? g.color : "#3A5A7A", fontFamily: "'IBM Plex Mono', monospace" }}>{g.rounds}</span>
+              </div>
+              {available && <Icon name="ChevronRight" size={16} style={{ color: g.color, flexShrink: 0 }} />}
+            </button>
+          );
+        })}
       </div>
-    </div>
-  );
-
-  if (phase === "result") return (
-    <div style={{ paddingBottom: 90, padding: "0 16px 90px" }}>
-      <div style={{ paddingTop: 4, paddingBottom: 20 }}>
-        <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 26, fontWeight: 700, color: "#EEF2F8", margin: 0 }}>ИГРЫ</h2>
-      </div>
-
-      <div style={{ background: "linear-gradient(160deg, rgba(168,85,247,0.12), rgba(11,22,41,0.95))", border: "1px solid rgba(168,85,247,0.25)", borderRadius: 20, padding: "28px 20px", textAlign: "center" }}>
-        <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 64, fontWeight: 700, color: scoreColor, lineHeight: 1 }}>{score}/{SCENARIOS.length}</div>
-        <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 18, fontWeight: 600, color: "#EEF2F8", margin: "8px 0 4px", letterSpacing: "0.04em" }}>{scoreLabel}</div>
-        <p style={{ color: "#5A7A9A", fontSize: 13, lineHeight: 1.55, margin: "0 0 24px" }}>
-          {score >= 4 ? "Мошенникам от тебя не скрыться! Ты отлично разбираешься в схемах обмана." : score >= 2 ? "Неплохо! Ещё немного практики — и ты станешь настоящим экспертом." : "Мошенники опасны! Пройди ещё раз, чтобы лучше их распознавать."}
-        </p>
-        <button onClick={startGame} style={{ width: "100%", padding: "14px", borderRadius: 14, background: "linear-gradient(135deg, #7C3AED, #A855F7)", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}>
-          Сыграть ещё раз
-        </button>
-      </div>
-    </div>
-  );
-
-  return (
-    <div style={{ paddingBottom: 90 }}>
-      {/* Progress */}
-      <div style={{ padding: "0 16px 16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-          <span style={{ color: "#5A7A9A", fontSize: 12, fontFamily: "'IBM Plex Mono', monospace" }}>Сценарий {currentIdx + 1} из {SCENARIOS.length}</span>
-          <span style={{ color: "#A855F7", fontSize: 12, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>Очки: {score}</span>
-        </div>
-        <div style={{ width: "100%", height: 4, background: "rgba(168,85,247,0.1)", borderRadius: 2 }}>
-          <div style={{ width: `${((currentIdx + 1) / SCENARIOS.length) * 100}%`, height: "100%", background: "linear-gradient(90deg, #7C3AED, #A855F7)", borderRadius: 2, transition: "width 0.4s ease" }} />
-        </div>
-      </div>
-
-      {/* Message card */}
-      <div style={{ margin: "0 16px 16px", background: "rgba(11,22,41,0.9)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 16, padding: "16px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Icon name="AlertCircle" fallback="AlertCircle" size={15} style={{ color: "#EF4444" }} />
-          </div>
-          <div>
-            <div style={{ color: "#EF4444", fontSize: 11, fontWeight: 600, fontFamily: "'IBM Plex Mono', monospace" }}>ПОДОЗРИТЕЛЬНОЕ СООБЩЕНИЕ</div>
-            <div style={{ color: "#5A7A9A", fontSize: 11 }}>От: {scenario.sender}</div>
-          </div>
-        </div>
-        <div style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.1)", borderRadius: 10, padding: "12px 14px" }}>
-          <p style={{ color: "#EEF2F8", fontSize: 14, lineHeight: 1.65, margin: 0 }}>{scenario.message}</p>
-        </div>
-      </div>
-
-      {/* Question */}
-      <div style={{ padding: "0 16px 12px" }}>
-        <p style={{ color: "#B0C8E0", fontSize: 14, fontWeight: 600, margin: "0 0 12px", fontFamily: "'IBM Plex Sans', sans-serif" }}>Что ты сделаешь?</p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {scenario.options.map((opt, idx) => {
-            const isSelected = selected === idx;
-            const isCorrect = opt.correct;
-            let borderColor = "rgba(34,130,240,0.15)";
-            let bg = "rgba(11,22,41,0.85)";
-            let textColor = "#B0C8E0";
-            if (selected !== null) {
-              if (isCorrect) { borderColor = "rgba(34,197,94,0.5)"; bg = "rgba(34,197,94,0.07)"; textColor = "#22C55E"; }
-              else if (isSelected) { borderColor = "rgba(239,68,68,0.5)"; bg = "rgba(239,68,68,0.07)"; textColor = "#EF4444"; }
-            }
-            return (
-              <button key={idx} onClick={() => handleAnswer(idx)}
-                style={{ width: "100%", padding: "13px 14px", borderRadius: 12, background: bg, border: `1px solid ${borderColor}`, color: textColor, fontFamily: "'IBM Plex Sans', sans-serif", fontSize: 13, textAlign: "left", cursor: selected !== null ? "default" : "pointer", display: "flex", alignItems: "center", gap: 10 }}
-              >
-                {selected !== null && (
-                  <Icon name={isCorrect ? "CheckCircle" : isSelected ? "XCircle" : "Circle"} fallback="Circle" size={16} style={{ flexShrink: 0, color: isCorrect ? "#22C55E" : isSelected ? "#EF4444" : "#3A5A7A" }} />
-                )}
-                <span style={{ lineHeight: 1.45 }}>{opt.text}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Explanation */}
-      {showExplanation && (
-        <div style={{ margin: "0 16px 16px", background: selected !== null && scenario.options[selected].correct ? "rgba(34,197,94,0.06)" : "rgba(239,68,68,0.06)", border: `1px solid ${selected !== null && scenario.options[selected].correct ? "rgba(34,197,94,0.25)" : "rgba(239,68,68,0.25)"}`, borderRadius: 12, padding: "14px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-            <Icon name={selected !== null && scenario.options[selected].correct ? "CheckCircle" : "XCircle"} fallback="Info" size={14} style={{ color: selected !== null && scenario.options[selected].correct ? "#22C55E" : "#EF4444" }} />
-            <span style={{ fontWeight: 600, fontSize: 12, color: selected !== null && scenario.options[selected].correct ? "#22C55E" : "#EF4444", fontFamily: "'IBM Plex Mono', monospace" }}>
-              {selected !== null && scenario.options[selected].correct ? "ПРАВИЛЬНО!" : "НЕВЕРНО"}
-            </span>
-          </div>
-          <p style={{ color: "#8BA3C0", fontSize: 13, lineHeight: 1.6, margin: 0 }}>
-            {selected !== null ? scenario.options[selected].explanation : ""}
-          </p>
-          <button onClick={handleNext} style={{ marginTop: 12, width: "100%", padding: "11px", borderRadius: 10, background: "#1A6ECC", color: "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, fontSize: 13, border: "none", cursor: "pointer" }}>
-            {isLast ? "Посмотреть результат" : "Следующий сценарий →"}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
