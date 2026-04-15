@@ -1396,7 +1396,7 @@ export default function Index() {
               <button key={n.id} onClick={() => setTab(n.id)}
                 style={{
                   flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                  gap: 3, padding: "8px 2px 8px", border: "none", background: "none", cursor: "pointer",
+                  gap: 3, padding: "12px 2px 12px", border: "none", background: "none", cursor: "pointer",
                   position: "relative", minWidth: 0,
                 }}
               >
