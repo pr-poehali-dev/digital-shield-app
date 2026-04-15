@@ -187,7 +187,7 @@ function StatsTab() {
   );
 }
 
-type ActiveGame = "hunters" | "hacknet" | "shadows" | "heist" | null;
+type ActiveGame = "hunters" | "hacknet" | "shadows" | "heist" | "devmode" | null;
 type GamePhase = "menu" | "playing" | "result";
 
 interface Scenario {
@@ -850,6 +850,172 @@ function HeistGame({ onBack }: { onBack: () => void }) {
   );
 }
 
+const GAME_AI_URL = "https://functions.poehali.dev/4df046ed-b5ef-426a-86ae-f4be83833cd4";
+
+const GENRES = ["Квиз", "Детектив", "Симулятор", "Стратегия", "Хакинг", "Ролевая"];
+const THEMES = ["Фишинг", "Финансовое мошенничество", "Кража данных", "Социальная инженерия", "Взлом аккаунтов", "Онлайн-пирамиды"];
+const AUDIENCES = ["Дети 10-13 лет", "Молодёжь 14-25 лет", "Взрослые 25-45 лет", "Пожилые 55+"];
+
+interface GameIdea {
+  title: string;
+  tagline: string;
+  description: string;
+  mechanics: string[];
+  levels: string[];
+  win_condition: string;
+  educational_goal: string;
+}
+
+function GameDevScreen({ onBack }: { onBack: () => void }) {
+  const [genre, setGenre] = useState(GENRES[0]);
+  const [theme, setTheme] = useState(THEMES[0]);
+  const [audience, setAudience] = useState(AUDIENCES[1]);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<GameIdea | null>(null);
+  const [error, setError] = useState("");
+
+  async function generate() {
+    setLoading(true);
+    setResult(null);
+    setError("");
+    try {
+      const resp = await fetch(GAME_AI_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ genre, theme, audience }),
+      });
+      const data = await resp.json();
+      if (data.ok) { setResult(data.game); }
+      else { setError("Нейросеть не ответила. Попробуй ещё раз."); }
+    } catch {
+      setError("Ошибка соединения. Попробуй позже.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ paddingBottom: 90 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 16px 14px" }}>
+        <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", color: "#5A7A9A", padding: 0 }}>
+          <Icon name="ChevronLeft" size={18} style={{ color: "#5A7A9A" }} />
+          <span style={{ fontSize: 13, fontFamily: "'IBM Plex Sans', sans-serif" }}>Все игры</span>
+        </button>
+        <span style={{ color: "#3A5A7A" }}>·</span>
+        <span style={{ color: "#34D399", fontSize: 13, fontFamily: "'IBM Plex Mono', monospace", fontWeight: 600 }}>Разработка игры</span>
+      </div>
+
+      <div style={{ padding: "0 16px", display: "flex", flexDirection: "column", gap: 14 }}>
+        {/* Header */}
+        <div style={{ background: "linear-gradient(135deg, rgba(52,211,153,0.12), rgba(11,22,41,0.95))", border: "1px solid rgba(52,211,153,0.3)", borderRadius: 16, padding: "16px 18px", display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ width: 46, height: 46, borderRadius: 13, background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="Sparkles" fallback="Wand2" size={22} style={{ color: "#34D399" }} />
+          </div>
+          <div>
+            <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 17, fontWeight: 700, color: "#EEF2F8" }}>ИИ-ГЕНЕРАТОР ИГР</div>
+            <p style={{ color: "#5A7A9A", fontSize: 12, margin: 0, lineHeight: 1.4 }}>Задай параметры — нейросеть придумает концепцию</p>
+          </div>
+        </div>
+
+        {/* Genre */}
+        <div>
+          <p style={{ color: "#5A7A9A", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 8px" }}>Жанр</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {GENRES.map(g => (
+              <button key={g} onClick={() => setGenre(g)} style={{ padding: "7px 14px", borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "'IBM Plex Sans', sans-serif", background: genre === g ? "rgba(52,211,153,0.15)" : "rgba(255,255,255,0.04)", color: genre === g ? "#34D399" : "#5A7A9A", border: `1px solid ${genre === g ? "rgba(52,211,153,0.4)" : "rgba(255,255,255,0.06)"}` }}>
+                {g}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Theme */}
+        <div>
+          <p style={{ color: "#5A7A9A", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 8px" }}>Тема</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {THEMES.map(t => (
+              <button key={t} onClick={() => setTheme(t)} style={{ padding: "7px 14px", borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "'IBM Plex Sans', sans-serif", background: theme === t ? "rgba(52,211,153,0.15)" : "rgba(255,255,255,0.04)", color: theme === t ? "#34D399" : "#5A7A9A", border: `1px solid ${theme === t ? "rgba(52,211,153,0.4)" : "rgba(255,255,255,0.06)"}` }}>
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Audience */}
+        <div>
+          <p style={{ color: "#5A7A9A", fontSize: 11, fontFamily: "'IBM Plex Mono', monospace", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 8px" }}>Аудитория</p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {AUDIENCES.map(a => (
+              <button key={a} onClick={() => setAudience(a)} style={{ padding: "7px 14px", borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "'IBM Plex Sans', sans-serif", background: audience === a ? "rgba(52,211,153,0.15)" : "rgba(255,255,255,0.04)", color: audience === a ? "#34D399" : "#5A7A9A", border: `1px solid ${audience === a ? "rgba(52,211,153,0.4)" : "rgba(255,255,255,0.06)"}` }}>
+                {a}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Generate button */}
+        <button onClick={generate} disabled={loading}
+          style={{ width: "100%", padding: "14px", borderRadius: 14, background: loading ? "rgba(52,211,153,0.1)" : "linear-gradient(135deg, #059669, #34D399)", color: loading ? "#34D399" : "#fff", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 700, fontSize: 15, border: loading ? "1px solid rgba(52,211,153,0.3)" : "none", cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          {loading
+            ? <><Icon name="Loader" fallback="Loader" size={16} style={{ color: "#34D399" }} /> Генерирую идею...</>
+            : <><Icon name="Sparkles" fallback="Wand2" size={16} /> Сгенерировать игру</>
+          }
+        </button>
+
+        {error && (
+          <div style={{ background: "rgba(239,68,68,0.07)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 12, padding: "12px 14px", color: "#EF4444", fontSize: 13 }}>{error}</div>
+        )}
+
+        {/* Result */}
+        {result && (
+          <div style={{ background: "rgba(11,22,41,0.9)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 16, padding: "18px 16px", display: "flex", flexDirection: "column", gap: 14 }}>
+            <div>
+              <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 22, fontWeight: 700, color: "#34D399", marginBottom: 4 }}>{result.title}</div>
+              <div style={{ color: "#8BA3C0", fontSize: 13, fontStyle: "italic" }}>"{result.tagline}"</div>
+            </div>
+            <p style={{ color: "#B0C8E0", fontSize: 13, lineHeight: 1.65, margin: 0 }}>{result.description}</p>
+
+            <div>
+              <p style={{ color: "#34D399", fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 8px" }}>Механики</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {result.mechanics.map((m, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                    <Icon name="Zap" fallback="Circle" size={12} style={{ color: "#34D399", marginTop: 2, flexShrink: 0 }} />
+                    <span style={{ color: "#8BA3C0", fontSize: 12, lineHeight: 1.5 }}>{m}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p style={{ color: "#34D399", fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 8px" }}>Уровни</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {result.levels.map((l, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                    <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 10, color: "#34D399", fontWeight: 700, flexShrink: 0, marginTop: 1 }}>{i + 1}.</span>
+                    <span style={{ color: "#8BA3C0", fontSize: 12, lineHeight: 1.5 }}>{l}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ background: "rgba(52,211,153,0.05)", border: "1px solid rgba(52,211,153,0.15)", borderRadius: 10, padding: "12px 14px" }}>
+              <p style={{ color: "#34D399", fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 4px" }}>Цель обучения</p>
+              <p style={{ color: "#B0C8E0", fontSize: 12, lineHeight: 1.55, margin: 0 }}>{result.educational_goal}</p>
+            </div>
+
+            <button onClick={generate}
+              style={{ width: "100%", padding: "11px", borderRadius: 10, background: "rgba(52,211,153,0.08)", color: "#34D399", fontFamily: "'IBM Plex Sans', sans-serif", fontWeight: 600, fontSize: 13, border: "1px solid rgba(52,211,153,0.2)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+              <Icon name="RefreshCw" fallback="RefreshCw" size={14} />
+              Сгенерировать ещё
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function GamesTab() {
   const [activeGame, setActiveGame] = useState<ActiveGame>(null);
 
@@ -857,6 +1023,7 @@ function GamesTab() {
   if (activeGame === "hacknet") return <HacknetGame onBack={() => setActiveGame(null)} />;
   if (activeGame === "shadows") return <ShadowsGame onBack={() => setActiveGame(null)} />;
   if (activeGame === "heist") return <HeistGame onBack={() => setActiveGame(null)} />;
+  if (activeGame === "devmode") return <GameDevScreen onBack={() => setActiveGame(null)} />;
 
   return (
     <div style={{ paddingBottom: 90 }}>
@@ -892,6 +1059,23 @@ function GamesTab() {
             </button>
           );
         })}
+
+        {/* Dev button */}
+        <button onClick={() => setActiveGame("devmode")}
+          style={{ width: "100%", background: "linear-gradient(135deg, rgba(52,211,153,0.12), rgba(11,22,41,0.92))", border: "1px solid rgba(52,211,153,0.3)", borderRadius: 16, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, textAlign: "left", cursor: "pointer" }}>
+          <div style={{ width: 46, height: 46, borderRadius: 13, background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon name="Sparkles" fallback="Wand2" size={20} style={{ color: "#34D399" }} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
+              <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 15, fontWeight: 600, color: "#EEF2F8" }}>Разработка игры</span>
+              <span style={{ padding: "1px 7px", borderRadius: 4, fontSize: 9, fontWeight: 700, background: "rgba(52,211,153,0.15)", color: "#34D399", fontFamily: "'IBM Plex Mono', monospace", letterSpacing: "0.06em" }}>ИИ</span>
+            </div>
+            <p style={{ color: "#5A7A9A", fontSize: 11, margin: "0 0 4px", lineHeight: 1.4 }}>Нейросеть придумает концепцию твоей игры</p>
+            <span style={{ fontSize: 10, color: "#34D399", fontFamily: "'IBM Plex Mono', monospace" }}>Жанр · Тема · Механики</span>
+          </div>
+          <Icon name="ChevronRight" size={16} style={{ color: "#34D399", flexShrink: 0 }} />
+        </button>
       </div>
     </div>
   );
