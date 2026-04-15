@@ -1359,9 +1359,7 @@ export default function Index() {
       <div style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(6,13,31,0.95)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(34,130,240,0.1)", padding: "12px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(34,130,240,0.15)", border: "1px solid rgba(34,130,240,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Icon name="Shield" size={15} style={{ color: "#2282F0" }} />
-            </div>
+            <img src="https://cdn.poehali.dev/projects/0f0e92f1-8c32-44b1-a5a4-d99f9d8f7d20/bucket/ff78346a-1bf2-491a-9614-879d513f7815.png" alt="logo" style={{ width: 34, height: 34, objectFit: "contain" }} />
             <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 18, fontWeight: 600, color: "#EEF2F8", letterSpacing: "0.04em" }}>
               КИБЕР<span style={{ color: "#2282F0" }}>ЩИТ</span>
             </span>
