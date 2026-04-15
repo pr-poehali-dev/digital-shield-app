@@ -1066,10 +1066,10 @@ function RatingTab() {
       <div style={{ padding: "4px 16px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
           <div style={{ width: 3, height: 14, background: "#C9A84C", borderRadius: 2 }} />
-          <span style={{ color: "#C9A84C", fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>Топ игроков</span>
+          <span style={{ color: "#C9A84C", fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>Топ</span>
         </div>
         <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 26, fontWeight: 700, color: "#EEF2F8", margin: "0 0 4px" }}>РЕЙТИНГ ИГР</h2>
-        <p style={{ color: "#5A7A9A", fontSize: 12, margin: 0 }}>Лучшие игроки платформы</p>
+        <p style={{ color: "#5A7A9A", fontSize: 12, margin: 0 }}>Лучшие игры</p>
       </div>
 
       {/* Top-3 podium */}
@@ -1092,24 +1092,37 @@ function RatingTab() {
         {RATING_DATA.map((r) => {
           const gameColor = GAME_COLORS[r.game] || "#2282F0";
           const isTop3 = r.place <= 3;
+          const isEmpty = r.place > 3;
           return (
-            <div key={r.id} style={{ background: isTop3 ? `linear-gradient(135deg, ${gameColor}10, rgba(11,22,41,0.9))` : "rgba(11,22,41,0.8)", border: `1px solid ${isTop3 ? `${gameColor}30` : "rgba(34,130,240,0.1)"}`, borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: isTop3 ? `${gameColor}18` : "rgba(34,130,240,0.06)", border: `1px solid ${isTop3 ? `${gameColor}40` : "rgba(34,130,240,0.1)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <div key={r.place} style={{ background: isTop3 ? `linear-gradient(135deg, ${gameColor}10, rgba(11,22,41,0.9))` : "rgba(11,22,41,0.5)", border: `1px solid ${isTop3 ? `${gameColor}30` : "rgba(255,255,255,0.04)"}`, borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: isTop3 ? `${gameColor}18` : "rgba(255,255,255,0.03)", border: `1px solid ${isTop3 ? `${gameColor}40` : "rgba(255,255,255,0.06)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 {r.medal
                   ? <span style={{ fontSize: 16 }}>{r.medal}</span>
-                  : <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 13, fontWeight: 700, color: "#3A5A7A" }}>{r.place}</span>
+                  : <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 13, fontWeight: 700, color: "#2A3A50" }}>{r.place}</span>
                 }
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                  <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 14, fontWeight: 600, color: "#EEF2F8" }}>{r.name}</span>
-                  <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "#3A5A7A" }}>{r.id}</span>
+              {isEmpty ? (
+                <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ height: 10, width: 80, borderRadius: 4, background: "rgba(255,255,255,0.04)" }} />
+                  <div style={{ height: 10, width: 50, borderRadius: 4, background: "rgba(255,255,255,0.03)" }} />
                 </div>
-                <span style={{ padding: "1px 7px", borderRadius: 4, fontSize: 10, fontWeight: 600, background: `${gameColor}15`, color: gameColor, fontFamily: "'IBM Plex Mono', monospace" }}>{r.game}</span>
-              </div>
+              ) : (
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                    <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 14, fontWeight: 600, color: "#EEF2F8" }}>{r.name}</span>
+                    <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 9, color: "#3A5A7A" }}>{r.id}</span>
+                  </div>
+                  <span style={{ padding: "1px 7px", borderRadius: 4, fontSize: 10, fontWeight: 600, background: `${gameColor}15`, color: gameColor, fontFamily: "'IBM Plex Mono', monospace" }}>{r.game}</span>
+                </div>
+              )}
               <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 16, fontWeight: 700, color: isTop3 ? gameColor : "#5A7A9A" }}>{r.score.toLocaleString()}</div>
-                <div style={{ fontSize: 10, color: "#3A5A7A", fontFamily: "'IBM Plex Mono', monospace" }}>очков</div>
+                {isEmpty
+                  ? <div style={{ height: 10, width: 36, borderRadius: 4, background: "rgba(255,255,255,0.04)" }} />
+                  : <>
+                    <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 16, fontWeight: 700, color: isTop3 ? gameColor : "#5A7A9A" }}>{r.score.toLocaleString()}</div>
+                    <div style={{ fontSize: 10, color: "#3A5A7A", fontFamily: "'IBM Plex Mono', monospace" }}>очков</div>
+                  </>
+                }
               </div>
             </div>
           );
