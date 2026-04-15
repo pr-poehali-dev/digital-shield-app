@@ -43,11 +43,12 @@ const FAQ = [
   { q: "Есть ли сертификат об обучении?", a: "Да, цифровой сертификат после завершения курса." },
 ];
 
-type Tab = "home" | "stats" | "games" | "support" | "pricing" | "rating";
+type Tab = "home" | "stats" | "education" | "games" | "support" | "pricing" | "rating";
 
 const NAV = [
   { id: "home" as Tab, icon: "Home", label: "Главная" },
   { id: "stats" as Tab, icon: "BarChart2", label: "Статистика" },
+  { id: "education" as Tab, icon: "BookOpen", label: "Обучение" },
   { id: "games" as Tab, icon: "Gamepad2", label: "Игры" },
   { id: "support" as Tab, icon: "MessageCircle", label: "Поддержка" },
   { id: "pricing" as Tab, icon: "Star", label: "Подписка" },
@@ -1142,6 +1143,23 @@ export default function Index() {
   const CONTENT: Record<Tab, JSX.Element> = {
     home: <HomeTab onNavigate={setTab} />,
     stats: <StatsTab />,
+    education: (
+      <div style={{ paddingBottom: 90 }}>
+        <div style={{ padding: "4px 16px 16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+            <div style={{ width: 3, height: 14, background: "#2282F0", borderRadius: 2 }} />
+            <span style={{ color: "#2282F0", fontSize: 10, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: "0.12em", textTransform: "uppercase" }}>Курсы</span>
+          </div>
+          <h2 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 26, fontWeight: 700, color: "#EEF2F8", margin: "0 0 6px" }}>ОБУЧЕНИЕ</h2>
+        </div>
+        <div style={{ margin: "0 16px", background: "rgba(11,22,41,0.7)", border: "1px solid rgba(34,130,240,0.1)", borderRadius: 16, padding: "40px 20px", textAlign: "center" }}>
+          <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(34,130,240,0.08)", border: "1px solid rgba(34,130,240,0.15)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+            <Icon name="BookOpen" fallback="Book" size={22} style={{ color: "#2A4A6A" }} />
+          </div>
+          <p style={{ color: "#2A4A6A", fontSize: 13, fontFamily: "'IBM Plex Mono', monospace", margin: 0 }}>Скоро здесь появятся курсы</p>
+        </div>
+      </div>
+    ),
     games: <GamesTab />,
     support: <SupportTab />,
     pricing: <PricingTab />,
