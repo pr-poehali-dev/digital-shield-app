@@ -11,12 +11,12 @@ const STATS_DATA = [
 ];
 
 const RISK_REPORTS = [
-  { category: "Фишинг и поддельные сайты", percent: 87, level: "danger" },
-  { category: "Мошенничество в соцсетях", percent: 72, level: "danger" },
-  { category: "Кража личных данных", percent: 61, level: "warning" },
-  { category: "Онлайн-вымогательство", percent: 48, level: "warning" },
-  { category: "Взлом аккаунтов", percent: 83, level: "danger" },
-  { category: "Финансовые схемы обмана", percent: 55, level: "warning" },
+  { category: "Фишинг и поддельные сайты", percent: 42, level: "warning" },
+  { category: "Мошенничество в соцсетях", percent: 37, level: "warning" },
+  { category: "Кража личных данных", percent: 53, level: "danger" },
+  { category: "Онлайн-вымогательство", percent: 13, level: "warning" },
+  { category: "Взлом аккаунтов", percent: 20, level: "warning" },
+  { category: "Финансовые схемы обмана", percent: 51, level: "danger" },
 ];
 
 
@@ -168,8 +168,8 @@ function StatsTab() {
       {/* Risk report */}
       <div style={{ margin: "0 16px", background: "rgba(11,22,41,0.85)", border: "1px solid rgba(34,130,240,0.15)", borderRadius: 16, padding: "18px 16px 16px" }}>
         <div style={{ marginBottom: 16 }}>
-          <h3 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 17, fontWeight: 600, color: "#EEF2F8", margin: "0 0 4px" }}>РИС-ОТЧЁТ: ТОП УГРОЗ</h3>
-          <p style={{ color: "#5A7A9A", fontSize: 12, margin: 0 }}>Индекс риска для молодёжи 14–25 лет</p>
+          <h3 style={{ fontFamily: "'Oswald', sans-serif", fontSize: 17, fontWeight: 600, color: "#EEF2F8", margin: "0 0 4px" }}>ТОП УГРОЗ</h3>
+          <p style={{ color: "#5A7A9A", fontSize: 12, margin: 0 }}>Индекс риска для молодёжи · 2025</p>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {RISK_REPORTS.map((r, i) => (
